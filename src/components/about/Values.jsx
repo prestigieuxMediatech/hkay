@@ -24,18 +24,18 @@ function Values() {
   ];
 
   return (
-    <section className="px-6 md:px-10 lg:px-20 py-20">
+    <section className="px-6 py-16 md:px-10 md:py-20 lg:px-20">
       {/* Header */}
-      <div className="text-center mb-12">
+      <div className="mb-10 text-center md:mb-12">
         <h2
-          className="text-4xl font-bold text-gray-900"
+          className="text-3xl font-bold text-gray-900 md:text-4xl"
           data-aos="fade-up"
         >
           Our Values
         </h2>
 
         <p
-          className="mt-3 text-lg text-gray-600"
+          className="mt-3 text-base text-gray-600 md:text-lg"
           data-aos="fade-up"
         >
           The principles that guide every product we create.

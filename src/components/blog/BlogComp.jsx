@@ -84,7 +84,7 @@ function BlogComp() {
 
   return (
     <div className="bg-gradient-to-b from-stone-50 to-white">
-      <section className="mx-auto max-w-7xl px-6 py-16 md:px-10 lg:px-20">
+      <section className="mx-auto max-w-7xl px-6 py-12 md:px-10 md:py-16 lg:px-20">
         <div className="space-y-16">
           <section className="rounded-3xl border border-stone-200 bg-white p-4 shadow-[0_18px_40px_rgba(59,31,15,0.06)] sm:p-6 lg:p-8">
             <div className="grid gap-8 lg:grid-cols-[3fr_2fr] lg:items-center">
@@ -302,15 +302,15 @@ function BlogComp() {
               No spam. Just craft, care, and stories from the workshop.
             </p>
 
-            <form className="mx-auto flex max-w-xl flex-col sm:flex-row">
+            <form className="mx-auto flex max-w-xl flex-col gap-3 sm:flex-row sm:gap-0">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="w-full rounded-l-lg border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 outline-none placeholder:text-stone-400 focus:border-[#3b1f0f] sm:flex-1"
+                className="w-full rounded-lg border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 outline-none placeholder:text-stone-400 focus:border-[#3b1f0f] sm:flex-1 sm:rounded-l-lg sm:rounded-r-none"
               />
               <button
                 type="submit"
-                className="rounded-r-lg bg-[#3b1f0f] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#4a2a16]"
+                className="rounded-lg bg-[#3b1f0f] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#4a2a16] sm:rounded-l-none sm:rounded-r-lg"
               >
                 Subscribe
               </button>

@@ -4,10 +4,10 @@ import { Card, CardContent } from "../ui/card";
 
 function Founder() {
   return (
-    <section className="px-6 md:px-10 lg:px-20 py-20">
+    <section className="px-6 py-16 md:px-10 md:py-20 lg:px-20">
       <Card className="border shadow-sm">
-        <CardContent className="p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+        <CardContent className="p-6 sm:p-8">
+          <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-10">
             {/* Image */}
             <div data-aos="fade-right">
               <Image
@@ -15,13 +15,13 @@ function Founder() {
                 alt="Founder"
                 width={600}
                 height={450}
-                className="w-full h-[450px] rounded-2xl object-cover"
+                className="h-[280px] w-full rounded-2xl object-cover sm:h-[360px] lg:h-[450px]"
               />
             </div>
 
             {/* Content */}
             <div data-aos="fade-left">
-              <h3 className="text-3xl font-bold text-gray-900 mb-6">
+              <h3 className="mb-6 text-2xl font-bold text-gray-900 md:text-3xl">
                 How It All Began
               </h3>
 

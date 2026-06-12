@@ -69,7 +69,7 @@ export default function Hero() {
         {slides.map((slide, index) => (
           <CarouselItem key={index}>
             <section
-              className="h-[650px] bg-cover bg-center flex items-center relative"
+              className="relative flex min-h-[420px] sm:min-h-[520px] lg:min-h-[650px] items-center bg-cover bg-center"
               style={{
                 backgroundImage: `url(${slide.image})`,
               }}
@@ -80,10 +80,10 @@ export default function Hero() {
               {/* Content */}
               <div
                 key={`${current}-${index}`}
-                className="relative z-10 flex flex-col px-10 gap-8"
+                className="relative z-10 flex flex-col gap-5 px-6 sm:gap-6 sm:px-10 md:gap-8"
               >
                 <h2
-                  className="font-bold text-white text-6xl"
+                  className="max-w-xl text-3xl font-bold text-white sm:text-4xl md:text-5xl lg:text-6xl"
                   data-aos="fade-right"
                   data-aos-delay="300"
                   data-aos-once="false"
@@ -92,7 +92,7 @@ export default function Hero() {
                 </h2>
 
                 <p
-                  className="text-2xl text-white w-[500px]"
+                  className="max-w-md text-base text-white sm:max-w-lg sm:text-lg md:text-xl lg:text-2xl"
                   data-aos="fade-up"
                   data-aos-delay="500"
                   data-aos-once="false"
@@ -100,9 +100,9 @@ export default function Hero() {
                   {slide.description}
                 </p>
 
-                <div className="flex gap-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:gap-5">
                   <Button
-                    className="px-10 py-6 bg-black-500 text-white cursor-pointer text-lg hover:bg-white hover:text-black hover:scale-105 transition-all duration-300"
+                    className="cursor-pointer bg-black px-8 py-5 text-base text-white transition-all duration-300 hover:scale-105 hover:bg-white hover:text-black sm:px-10 sm:py-6 sm:text-lg"
                     data-aos="fade-right"
                     data-aos-delay="700"
                     data-aos-once="false"
@@ -111,7 +111,7 @@ export default function Hero() {
                   </Button>
 
                   <Button
-                    className="px-10 py-6 bg-white cursor-pointer text-black text-lg hover:bg-black-500 hover:text-black hover:scale-105 transition-all duration-300"
+                    className="cursor-pointer bg-white px-8 py-5 text-base text-black transition-all duration-300 hover:scale-105 hover:bg-black hover:text-white sm:px-10 sm:py-6 sm:text-lg"
                     data-aos="fade-left"
                     data-aos-delay="700"
                     data-aos-once="false"

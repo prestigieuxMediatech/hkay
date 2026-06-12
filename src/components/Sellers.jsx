@@ -28,15 +28,15 @@ function Sellers() {
   ];
 
   return (
-    <section className="px-6 md:px-10 lg:px-20 py-5">
+    <section className="px-6 py-12 md:px-10 md:py-16 lg:px-20">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b pb-8 mb-12">
+      <div className="mb-10 flex flex-col gap-6 border-b pb-8 md:mb-12 md:flex-row md:items-center md:justify-between">
         <div data-aos="fade-right">
-          <h2 className="text-4xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">
             Best Sellers
           </h2>
 
-          <p className="mt-3 text-gray-600 text-lg">
+          <p className="mt-3 text-base text-gray-600 md:text-lg">
             Handpicked leather essentials crafted for everyday elegance.
           </p>
         </div>
@@ -87,7 +87,9 @@ function Sellers() {
                   height={500}
                   className="
                     w-full
-                    h-[320px]
+                    h-[240px]
+                    sm:h-[280px]
+                    lg:h-[320px]
                     object-cover
                     transition-transform
                     duration-500

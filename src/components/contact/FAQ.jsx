@@ -55,18 +55,18 @@ function FAQ() {
   ];
 
   return (
-    <section className="px-6 md:px-10 lg:px-20 py-20 bg-white">
+    <section className="bg-white px-6 py-16 md:px-10 md:py-20 lg:px-20">
       {/* Header */}
-      <div className="text-center mb-12">
+      <div className="mb-10 text-center md:mb-12">
         <h2
-          className="text-4xl font-bold text-gray-900"
+          className="text-3xl font-bold text-gray-900 md:text-4xl"
           data-aos="fade-up"
         >
           Frequently Asked Questions
         </h2>
 
         <p
-          className="mt-3 text-lg text-gray-600 max-w-3xl mx-auto"
+          className="mx-auto mt-3 max-w-3xl text-base text-gray-600 md:text-lg"
           data-aos="fade-up"
         >
           Find answers to the most common questions about our leather
@@ -108,7 +108,7 @@ function FAQ() {
                   p-6
                 "
               >
-                <span className="text-lg font-semibold text-gray-900 pr-4">
+                <span className="pr-4 text-base font-semibold text-gray-900 sm:text-lg">
                   {faq.question}
                 </span>
 

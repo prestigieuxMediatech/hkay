@@ -28,7 +28,7 @@ function ShopProducts() {
   ];
 
   return (
-    <section className="px-6 md:px-10 lg:px-20 py-5">
+    <section className="px-6 py-12 md:px-10 md:py-16 lg:px-20">
       {/* Header */}
 
       {/* Products Grid */}
@@ -59,7 +59,9 @@ function ShopProducts() {
                   height={500}
                   className="
                     w-full
-                    h-[320px]
+                    h-[240px]
+                    sm:h-[280px]
+                    lg:h-[320px]
                     object-cover
                     transition-transform
                     duration-500

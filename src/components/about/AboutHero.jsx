@@ -3,19 +3,17 @@ import React from 'react'
 function AboutHero() {
   return (
     <section
-        className="relative h-[450px] bg-cover bg-center flex items-center"
+        className="relative flex min-h-[320px] sm:min-h-[400px] lg:min-h-[450px] items-center bg-cover bg-center"
         style={{ backgroundImage: "url('/about.png')" }}
         >
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent" />
 
-        {/* Content */}
-        <div className="relative mt-20 z-10 px-20 text-white flex flex-col items-center justify-center">
-            <h2 className="text-5xl font-bold mb-4">
+        <div className="relative z-10 mx-auto mt-16 flex max-w-4xl flex-col items-center justify-center px-6 pt-8 text-center text-white sm:mt-20 sm:px-10 md:px-16 lg:px-20">
+            <h2 className="mb-4 text-3xl font-bold sm:text-4xl lg:text-5xl">
                 The Story Behind Every Stitch
             </h2>
 
-            <p className="text-lg">
+            <p className="max-w-2xl text-base sm:text-lg">
                 Since 2018, HKAY has been dedicated to creating premium leather goods
                 that combine timeless craftsmanship, exceptional quality, and modern
                 design.

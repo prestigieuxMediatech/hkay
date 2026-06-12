@@ -7,18 +7,18 @@ import { FaInstagram, FaFacebookF, FaYoutube } from "react-icons/fa";
 
 function ContactComp() {
   return (
-    <section className="px-6 md:px-10 lg:px-20 py-20">
+    <section className="px-6 py-16 md:px-10 md:py-20 lg:px-20">
       {/* Header */}
-      <div className="text-center mb-12">
+      <div className="mb-10 text-center md:mb-12">
         <h2
-          className="text-4xl font-bold text-gray-900"
+          className="text-3xl font-bold text-gray-900 md:text-4xl"
           data-aos="fade-up"
         >
           Get In Touch
         </h2>
 
         <p
-          className="mt-3 text-lg text-gray-600 max-w-3xl mx-auto"
+          className="mx-auto mt-3 max-w-3xl text-base text-gray-600 md:text-lg"
           data-aos="fade-up"
         >
           Have a question or need assistance? Fill out the form and our team
@@ -27,14 +27,14 @@ function ContactComp() {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
         {/* Contact Form */}
         <Card
           className="w-full border shadow-sm"
           data-aos="fade-right"
         >
-          <CardContent className="p-8">
-            <h3 className="text-2xl font-bold mb-6">
+          <CardContent className="p-6 sm:p-8">
+            <h3 className="mb-6 text-xl font-bold sm:text-2xl">
               Send Us a Message
             </h3>
 
@@ -93,8 +93,8 @@ function ContactComp() {
           className="w-full border shadow-sm"
           data-aos="fade-left"
         >
-          <CardContent className="p-8">
-            <h3 className="text-2xl font-bold mb-8">
+          <CardContent className="p-6 sm:p-8">
+            <h3 className="mb-8 text-xl font-bold sm:text-2xl">
               Contact Details
             </h3>
 

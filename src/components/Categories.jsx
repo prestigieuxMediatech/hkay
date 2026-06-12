@@ -24,15 +24,15 @@ function Categories() {
   ];
 
   return (
-    <section className="px-6 md:px-16 lg:px-20 py-24">
+    <section className="px-6 py-16 md:px-10 md:py-20 lg:px-20 lg:py-24">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b pb-8 mb-12">
+      <div className="mb-10 flex flex-col gap-6 border-b pb-8 md:mb-12 md:flex-row md:items-center md:justify-between">
         <div data-aos='fade-right'>
-          <h2 className="text-4xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">
             Featured Categories
           </h2>
 
-          <p className="mt-3 text-gray-600 text-lg">
+          <p className="mt-3 text-base text-gray-600 md:text-lg">
             Discover our premium handcrafted leather collection
           </p>
         </div>
@@ -84,7 +84,9 @@ function Categories() {
                   height={500}
                   className="
                     w-full
-                    h-[360px]
+                    h-[260px]
+                    sm:h-[300px]
+                    lg:h-[360px]
                     object-cover
                     transition-transform
                     duration-500

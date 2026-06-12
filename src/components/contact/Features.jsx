@@ -36,18 +36,18 @@ function Features() {
   ];
 
   return (
-    <section className="px-6 md:px-10 lg:px-20 py-10">
+    <section className="px-6 py-12 md:px-10 md:py-16 lg:px-20">
       {/* Header */}
-      <div className="text-center mb-12">
+      <div className="mb-10 text-center md:mb-12">
         <h2
-          className="text-4xl font-bold text-gray-900"
+          className="text-3xl font-bold text-gray-900 md:text-4xl"
           data-aos="fade-up"
         >
           We're Here to Help
         </h2>
 
         <p
-          className="mt-3 text-lg text-gray-600 max-w-3xl mx-auto"
+          className="mx-auto mt-3 max-w-3xl text-base text-gray-600 md:text-lg"
           data-aos="fade-up"
         >
           Get reliable support, quick responses, and personalized assistance
@@ -72,7 +72,7 @@ function Features() {
                 duration-300
               "
             >
-              <CardContent className="p-8 text-center">
+              <CardContent className="p-6 text-center sm:p-8">
                 <div className="flex justify-center mb-5">
                   <Icon size={36} />
                 </div>

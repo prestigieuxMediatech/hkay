@@ -20,14 +20,14 @@ function Reviews() {
         },
     ];
   return (
-    <section className="px-6 md:px-10 lg:px-20 py-20">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b pb-8 mb-12">
+    <section className="px-6 py-16 md:px-10 md:py-20 lg:px-20">
+        <div className="mb-10 flex flex-col gap-6 border-b pb-8 md:mb-12 md:flex-row md:items-center md:justify-between">
             <div data-aos="fade-right">
-                <h2 className="text-4xl font-bold text-gray-900">
+                <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">
                     What Our Customers Say
                 </h2>
 
-                <p className="mt-3 text-gray-600 text-lg">
+                <p className="mt-3 text-base text-gray-600 md:text-lg">
                     Trusted by thousands who appreciate quality craftsmanship and timeless design.
                 </p>
             </div>

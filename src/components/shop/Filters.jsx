@@ -15,11 +15,11 @@ function Filters() {
   ];
 
   return (
-    <section className="px-6 md:px-10 lg:px-20 py-10">
+    <section className="px-6 py-8 md:px-10 md:py-10 lg:px-20">
       <Card className="border shadow-sm">
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           {/* Search */}
-          <div className="flex justify-end mb-6">
+          <div className="mb-6 flex justify-stretch md:justify-end">
             <Input
               placeholder="Search products..."
               className="w-full md:w-[350px]"

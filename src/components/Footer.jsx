@@ -11,10 +11,10 @@ export default function Footer() {
   const support = ["Help Center", "Shipping", "Returns", "Privacy Policy"];
 
   return (
-    <footer className="border-t bg-gray-50 px-6 md:px-10 lg:px-20 py-14">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-        <div>
-          <h3 className="text-3xl font-bold text-gray-900">HKAY</h3>
+    <footer className="border-t bg-gray-50 px-6 py-12 md:px-10 md:py-14 lg:px-20">
+      <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="sm:col-span-2 lg:col-span-1">
+          <h3 className="text-2xl font-bold text-gray-900 md:text-3xl">HKAY</h3>
           <p className="mt-4 text-gray-600 leading-7">
             Premium leather goods crafted with care, made to fit into your everyday life.
           </p>
