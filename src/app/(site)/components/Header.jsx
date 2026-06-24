@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
-import { Button } from "./ui/button"
+import { useUser, SignInButton, UserButton } from "@clerk/nextjs"
+import { Button } from "@/components/ui/button"
 import { Heart, ShoppingCart, User, Menu, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -11,11 +12,12 @@ import {
     SheetClose,
     SheetHeader,
     SheetTitle,
-} from "./ui/sheet"
+} from "@/components/ui/sheet"
 
 export default function Header() {
     const [scrolled, setScrolled] = useState(false)
     const [menuOpen, setMenuOpen] = useState(false)
+    const { isLoaded, isSignedIn } = useUser()
 
     useEffect(() => {
         const handleScroll = () => {
@@ -57,9 +59,9 @@ export default function Header() {
                     <Image
                         src={isLight ? "/logo_black.png" : "/logo_white.png"}
                         alt="Logo"
-                        width={70}
-                        height={50}
-                        className="h-9 w-auto sm:h-11 cursor-pointer object-contain transition-all duration-300"
+                        width={90}
+                        height={70}
+                        className="h-10 w-auto sm:h-18 cursor-pointer object-contain transition-all duration-300"
                         data-aos="fade-right"
                     />
                 </Link>
@@ -79,16 +81,48 @@ export default function Header() {
 
                 {/* Icons + Mobile Menu */}
                 <div className="flex items-center gap-1 sm:gap-2" data-aos="fade-left">
-                    {[User, Heart, ShoppingCart].map((Icon, index) => (
-                        <Button
-                            key={index}
-                            variant="ghost"
-                            size="icon"
-                            className={iconBtnClass}
-                        >
-                            <Icon size={22} strokeWidth={1.5} className="size-5" />
-                        </Button>
-                    ))}
+                    {isLoaded && !isSignedIn ? (
+                        <SignInButton mode="modal">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className={iconBtnClass}
+                            >
+                                <User size={22} strokeWidth={1.5} className="size-5" />
+                            </Button>
+                        </SignInButton>
+                    ) : null}
+
+                    {isLoaded && isSignedIn ? (
+                        <div className="scale-90">
+                            <UserButton
+                                afterSignOutUrl="/"
+                                appearance={{
+                                    elements: {
+                                        avatarBox: "w-9 h-9",
+                                    },
+                                }}
+                            />
+                        </div>
+                    ) : null}
+
+                    {/* Wishlist */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={iconBtnClass}
+                    >
+                        <Heart size={22} strokeWidth={1.5} className="size-5" />
+                    </Button>
+
+                    {/* Cart */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={iconBtnClass}
+                    >
+                        <ShoppingCart size={22} strokeWidth={1.5} className="size-5" />
+                    </Button>
 
                     <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
                         <SheetTrigger asChild>

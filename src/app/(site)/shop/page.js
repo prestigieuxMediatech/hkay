@@ -1,6 +1,6 @@
-import Filters from '@/components/shop/Filters'
-import ShopHero from '@/components/shop/ShopHero'
-import ShopProducts from '@/components/shop/ShopProducts'
+import Filters from '../components/shop/Filters'
+import ShopHero from '../components/shop/ShopHero'
+import ShopProducts from '../components/shop/ShopProducts'
 import React from 'react'
 
 function page() {

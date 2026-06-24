@@ -1,8 +1,8 @@
 import React from "react";
-import { Card, CardContent } from "../ui/card";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import { Button } from "../ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { FaInstagram, FaFacebookF, FaYoutube } from "react-icons/fa";
 
 function ContactComp() {

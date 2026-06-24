@@ -65,36 +65,17 @@ function Sellers() {
           <Card
             key={item.name}
             data-aos="fade-up"
-            className="
-              overflow-hidden
-              rounded-2xl
-              border
-              shadow-sm
-              hover:shadow-lg
-              hover:-translate-y-1
-              transition-all
-              duration-300
-              cursor-pointer
-            "
+            className="group overflow-hidden rounded-2xl border bg-white p-0 py-0 gap-0 shadow-sm transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-lg"
           >
             <CardContent className="p-0">
               {/* Product Image */}
-              <div className="overflow-hidden">
+              <div className="relative aspect-[4/5] w-full overflow-hidden bg-stone-100">
                 <Image
                   src={item.image}
                   alt={item.name}
-                  width={400}
-                  height={500}
-                  className="
-                    w-full
-                    h-[240px]
-                    sm:h-[280px]
-                    lg:h-[320px]
-                    object-cover
-                    transition-transform
-                    duration-500
-                    hover:scale-105
-                  "
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
 

@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import AOS from "aos";
 
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-} from "./ui/carousel";
+} from "@/components/ui/carousel";
 
 import Autoplay from "embla-carousel-autoplay";
 

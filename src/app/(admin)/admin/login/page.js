@@ -1,5 +1,9 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { ArrowLeft, Mail, LockKeyhole } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -7,6 +11,42 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 
 export default function AdminLoginPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+    setLoading(true)
+    setError("")
+
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || "Login failed.")
+        return
+      }
+
+      router.replace("/admin")
+      router.refresh()
+    } catch {
+      setError("Network error. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#eadccf_0%,#f7f2ec_42%,#f1e8de_100%)] px-4 py-8 text-stone-900">
       <div className="mx-auto flex min-h-screen max-w-5xl items-center">
@@ -66,13 +106,26 @@ export default function AdminLoginPage() {
                 </p>
               </div>
 
-              <form className="space-y-4">
+              {error ? (
+                <div className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                  {error}
+                </div>
+              ) : null}
+
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <label className="block">
                   <span className="mb-2 flex items-center gap-2 text-sm font-medium text-stone-700">
                     <Mail size={16} />
                     Email
                   </span>
-                  <Input type="email" placeholder="admin@hkay.com" />
+                  <Input
+                    type="email"
+                    placeholder="admin@hkay.com"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    autoComplete="email"
+                    required
+                  />
                 </label>
 
                 <label className="block">
@@ -80,7 +133,14 @@ export default function AdminLoginPage() {
                     <LockKeyhole size={16} />
                     Password
                   </span>
-                  <Input type="password" placeholder="Enter your password" />
+                  <Input
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="current-password"
+                    required
+                  />
                 </label>
 
                 <div className="flex items-center justify-between text-sm text-stone-500">
@@ -98,10 +158,11 @@ export default function AdminLoginPage() {
                 </div>
 
                 <Button
-                  type="button"
+                  type="submit"
                   className="h-11 w-full bg-[#1c0d02] text-white hover:bg-[#2a1506]"
+                  disabled={loading}
                 >
-                  Sign in
+                  {loading ? "Signing in..." : "Sign in"}
                 </Button>
               </form>
 

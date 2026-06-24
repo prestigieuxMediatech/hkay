@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Menu,
   Package,
+  Tags,
   Settings2,
   ShoppingBag,
   X,
@@ -21,6 +22,7 @@ const navLinks = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Orders", href: "/admin/orders", icon: ShoppingBag },
   { label: "Products", href: "/admin/products", icon: Package },
+  { label: "Categories", href: "/admin/categories", icon: Tags },
   { label: "Blog", href: "/admin/blog", icon: FileText },
   { label: "Settings", href: "/admin/settings", icon: Settings2 },
 ]
@@ -111,6 +113,15 @@ export default function AdminLayout({ children }) {
               <p className="mt-2 text-sm leading-6 text-stone-200">
                 A clean, focused space for orders, inventory, and content.
               </p>
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = '/admin/login'
+                }}
+                className="mt-4 w-full rounded-xl border border-white/10 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/20 hover:text-red-200"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </aside>
@@ -156,6 +167,15 @@ export default function AdminLayout({ children }) {
                       onClick={() => setMenuOpen(false)}
                     />
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.location.href = '/admin/login'
+                    }}
+                    className="mt-1 flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm text-red-400 transition hover:bg-white/5"
+                  >
+                    Logout
+                  </button>
                 </div>
               </div>
             )}

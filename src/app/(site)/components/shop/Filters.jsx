@@ -1,6 +1,6 @@
 import React from "react";
-import { Input } from "../ui/input";
-import { Card, CardContent } from "../ui/card";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 
 function Filters() {
   const filters = [
