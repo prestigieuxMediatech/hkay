@@ -1,14 +1,14 @@
-import Filters from '../components/shop/Filters'
+
 import ShopHero from '../components/shop/ShopHero'
-import ShopProducts from '../components/shop/ShopProducts'
+
 import React from 'react'
+import ShopSection from '../components/shop/ShopSection'
 
 function page() {
   return (
     <div className="bg-white">
         <ShopHero/>
-        <Filters/>
-        <ShopProducts/>
+        <ShopSection/>
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Heart, ShoppingCart, User, Menu, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useCart } from './CartContext'
 import {
     Sheet,
     SheetContent,
@@ -17,6 +18,7 @@ import {
 export default function Header() {
     const [scrolled, setScrolled] = useState(false)
     const [menuOpen, setMenuOpen] = useState(false)
+    const { cartCount } = useCart()
     const { isLoaded, isSignedIn } = useUser()
 
     useEffect(() => {
@@ -115,14 +117,23 @@ export default function Header() {
                         <Heart size={22} strokeWidth={1.5} className="size-5" />
                     </Button>
 
-                    {/* Cart */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className={iconBtnClass}
-                    >
-                        <ShoppingCart size={22} strokeWidth={1.5} className="size-5" />
-                    </Button>
+                    <Link href="/cart">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`${iconBtnClass} relative`}
+                        >
+                            <ShoppingCart size={22} strokeWidth={1.5} className="size-5" />
+                            {cartCount > 0 && (
+                            <span className="absolute -top-1 -right-1 
+                                bg-[#1c0d02] text-white text-[10px] 
+                                font-bold rounded-full w-4 h-4 
+                                flex items-center justify-center">
+                                {cartCount}
+                            </span>
+                            )}
+                        </Button>
+                    </Link>
 
                     <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
                         <SheetTrigger asChild>

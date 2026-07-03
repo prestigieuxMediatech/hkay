@@ -24,41 +24,44 @@ const isCustomerProtected = createRouteMatcher([
 ])
 
 export default clerkMiddleware(async (auth, req) => {
-  const { pathname } = req.nextUrl
-
-  // ── ADMIN SIDE — JWT check ──
+  // ── ADMIN SIDE — bypass Clerk entirely, just JWT ──
   if (isAdminRoute(req)) {
-    // always allow admin login page
     if (isAdminLogin(req)) return NextResponse.next()
 
     const token = req.cookies.get(COOKIE_NAME)?.value
-
     if (!token || !(await isValidSession(token))) {
       const url = req.nextUrl.clone()
       url.pathname = '/admin/login'
-      url.searchParams.set('next', pathname)
+      url.searchParams.set('next', req.nextUrl.pathname)
       return NextResponse.redirect(url)
     }
-
-    // valid admin session — allow through
     return NextResponse.next()
   }
 
-  // ── CUSTOMER SIDE — Clerk check ──
+  // ── CUSTOMER SIDE — Clerk only where needed ──
   if (isCustomerProtected(req)) {
     const { userId } = await auth()
     if (!userId) {
-      return NextResponse.redirect(
-        new URL('/sign-in', req.url)
-      )
+      return NextResponse.redirect(new URL('/sign-in', req.url))
     }
   }
 
+  return NextResponse.next() // ← ADD THIS: explicit pass-through for all other routes
 })
 
 export const config = {
   matcher: [
-    '/((?!.*\\..*|_next).*)',
+    /*
+     * Only run middleware on:
+     * - /admin routes (JWT check)
+     * - /account, /orders (Clerk check)
+     * - /api and /trpc routes
+     *
+     * Skip: _next/static, _next/image, favicon, public files
+     */
+    '/admin/:path*',
+    '/account/:path*',
+    '/orders/:path*',
     '/(api|trpc)(.*)',
   ],
 }

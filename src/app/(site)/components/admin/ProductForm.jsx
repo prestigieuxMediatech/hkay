@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   buildImageAccept,
+  MAX_PRODUCT_IMAGE_BYTES,
+  validateImageFileSize,
   validateImageFileType,
 } from "@/lib/image-standards";
 
@@ -48,6 +50,24 @@ function buildFormState(product) {
 
 function isFileLike(value) {
   return value && typeof value === "object" && typeof value.arrayBuffer === "function";
+}
+
+async function cleanupUploadedProductImages(imageUrls) {
+  if (!imageUrls.length) {
+    return;
+  }
+
+  try {
+    await fetch("/api/admin/product-images", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ urls: imageUrls }),
+    });
+  } catch {
+    // Best-effort cleanup only.
+  }
 }
 
 export default function ProductForm({
@@ -126,6 +146,17 @@ export default function ProductForm({
         setImageError(typeError);
         return;
       }
+
+      const sizeError = validateImageFileSize(
+        file,
+        MAX_PRODUCT_IMAGE_BYTES,
+        "Product image"
+      );
+      if (sizeError) {
+        clearImages();
+        setImageError(sizeError);
+        return;
+      }
     }
 
     imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
@@ -150,26 +181,53 @@ export default function ProductForm({
     setLoading(true);
     setError("");
 
-    try {
-      const formData = new FormData();
-      formData.append("name", form.name.trim());
-      formData.append("slug", form.slug.trim());
-      formData.append("description", form.description.trim());
-      formData.append("price", form.price);
-      formData.append("originalPrice", form.originalPrice);
-      formData.append("categoryId", form.categoryId);
-      formData.append("isFeatured", String(form.isFeatured));
-      formData.append("isNewArrival", String(form.isNewArrival));
-      formData.append("isBestSeller", String(form.isBestSeller));
-      formData.append("status", form.status);
+    const uploadedImageUrls = [];
 
-      imageFiles.forEach((file) => {
-        formData.append("images", file);
-      });
+    try {
+      for (let index = 0; index < imageFiles.length; index += 1) {
+        const file = imageFiles[index];
+        const uploadFormData = new FormData();
+        uploadFormData.append("image", file);
+        uploadFormData.append("slug", form.slug.trim());
+        uploadFormData.append("index", String(index));
+
+        const uploadResponse = await fetch("/api/admin/product-images", {
+          method: "POST",
+          body: uploadFormData,
+        });
+
+        const uploadData = await uploadResponse.json();
+
+        if (!uploadResponse.ok) {
+          throw new Error(uploadData.error || "Failed to upload product images");
+        }
+
+        uploadedImageUrls.push(uploadData.imageUrl);
+      }
+
+      const payload = {
+        name: form.name.trim(),
+        slug: form.slug.trim(),
+        description: form.description.trim(),
+        price: form.price,
+        originalPrice: form.originalPrice,
+        categoryId: form.categoryId,
+        isFeatured: form.isFeatured,
+        isNewArrival: form.isNewArrival,
+        isBestSeller: form.isBestSeller,
+        status: form.status,
+      };
+
+      if (uploadedImageUrls.length) {
+        payload.images = uploadedImageUrls;
+      }
 
       const response = await fetch(actionUrl, {
         method,
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -181,6 +239,7 @@ export default function ProductForm({
       router.push(backHref);
       router.refresh();
     } catch (err) {
+      await cleanupUploadedProductImages(uploadedImageUrls);
       setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);

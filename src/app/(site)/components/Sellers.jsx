@@ -2,8 +2,23 @@ import React from "react";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { supabase } from '@/lib/supabase'
 
-function Sellers() {
+async function Sellers() {
+
+
+  const { data:products = [] , error } = await supabase 
+    .from("products")
+    .select("id,name,images,price,status,is_best_seller")
+    .eq("status","active")
+    .eq("is_best_seller",true)
+    .limit(4);
+
+  if(error){
+    console.error("Failed to load best sellers",error.message);
+    return null;
+  }
+  /*
   const products = [
     {
       name: "Leather Travel Bag",
@@ -26,6 +41,7 @@ function Sellers() {
       price: "₹999",
     },
   ];
+  */
 
   return (
     <section className="px-6 py-12 md:px-10 md:py-16 lg:px-20">
@@ -67,20 +83,28 @@ function Sellers() {
             data-aos="fade-up"
             className="group overflow-hidden rounded-2xl border bg-white p-0 py-0 gap-0 shadow-sm transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-lg"
           >
-            <CardContent className="p-0">
+            <CardContent className="p-0 flex flex-col flex-1">
               {/* Product Image */}
               <div className="relative aspect-[4/5] w-full overflow-hidden bg-stone-100">
-                <Image
-                  src={item.image}
-                  alt={item.name}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+                {item.images ? (
+                  <Image
+                    src={item.images?.[0]}
+                    alt={item.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  ) : (
+                  <div className="flex h-full items-center justify-center bg-stone-200">
+                    <span className="text-sm font-medium text-stone-500">
+                      No image
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Product Details */}
-              <div className="p-5">
+              <div className="p-5 flex flex-col flex-1 justify-between">
                 <h3 className="text-xl font-semibold text-gray-900">
                   {item.name}
                 </h3>

@@ -21,6 +21,8 @@ export const PRODUCT_IMAGE_REQUIREMENT = {
   height: 800,
 };
 
+export const MAX_PRODUCT_IMAGE_BYTES = 10 * 1024 * 1024;
+
 export const CATEGORY_IMAGE_REQUIREMENT = {
   label: "Category image",
   width: 600,
@@ -57,6 +59,35 @@ export function isAllowedImageFile(file) {
 export function validateImageFileType(file, label = "Image") {
   if (!isAllowedImageFile(file)) {
     return `${label} must be an image file.`;
+  }
+
+  return null;
+}
+
+export function formatFileSize(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return "0 B";
+  }
+
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unitIndex = 0;
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+
+  return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+}
+
+export function validateImageFileSize(file, maxBytes = MAX_PRODUCT_IMAGE_BYTES, label = "Image") {
+  if (!file || typeof file !== "object" || typeof file.size !== "number") {
+    return `${label} is invalid.`;
+  }
+
+  if (file.size > maxBytes) {
+    return `${label} must be ${formatFileSize(maxBytes)} or smaller.`;
   }
 
   return null;

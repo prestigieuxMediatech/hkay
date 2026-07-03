@@ -3,11 +3,8 @@ import { supabase } from "@/lib/supabase";
 import { requireAdmin } from "@/lib/require-admin";
 import {
   deleteProductImages,
-  isFileLike,
   toBoolean,
-  uploadProductImage,
 } from "@/lib/product-images";
-import { validateImageFileType } from "@/lib/image-standards";
 
 function normalizeStatus(value) {
   return value === "active" ? "active" : "draft";
@@ -20,6 +17,63 @@ function isValidProductId(id) {
 async function getProductId(context) {
   const params = await context.params;
   return params?.id;
+}
+
+function normalizeText(value) {
+  return value == null ? "" : value.toString().trim();
+}
+
+function normalizeNullableText(value) {
+  const text = normalizeText(value);
+  return text || null;
+}
+
+function normalizeNullableNumber(value) {
+  const text = normalizeText(value);
+
+  if (!text) {
+    return null;
+  }
+
+  const numberValue = Number(text);
+  return Number.isNaN(numberValue) ? Number.NaN : numberValue;
+}
+
+function normalizeImageUrls(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((url) => (typeof url === "string" ? url.trim() : ""))
+    .filter(Boolean);
+}
+
+async function readProductBody(request) {
+  const contentType = request.headers.get("content-type") || "";
+
+  if (contentType.includes("application/json")) {
+    return request.json();
+  }
+
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await request.formData();
+    return {
+      name: formData.get("name"),
+      slug: formData.get("slug"),
+      description: formData.get("description"),
+      price: formData.get("price"),
+      originalPrice: formData.get("originalPrice"),
+      categoryId: formData.get("categoryId"),
+      isFeatured: formData.get("isFeatured"),
+      isNewArrival: formData.get("isNewArrival"),
+      isBestSeller: formData.get("isBestSeller"),
+      status: formData.get("status"),
+      images: formData.getAll("images"),
+    };
+  }
+
+  return request.json();
 }
 
 export async function GET(request, context) {
@@ -76,27 +130,21 @@ export async function PATCH(request, context) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    const formData = await request.formData();
+    const body = await readProductBody(request);
+    const imagesProvided = Object.prototype.hasOwnProperty.call(body, "images");
+    const imageUrls = normalizeImageUrls(body.images);
 
-    const name = formData.get("name")?.toString().trim();
-    const slug = formData.get("slug")?.toString().trim().toLowerCase();
-    const description = formData.get("description")?.toString().trim() || null;
-    const priceRaw = formData.get("price")?.toString().trim();
+    const name = normalizeText(body.name);
+    const slug = normalizeText(body.slug).toLowerCase();
+    const description = normalizeNullableText(body.description);
+    const priceRaw = normalizeText(body.price);
     const price = Number(priceRaw);
-    const originalPriceRaw = formData.get("originalPrice")?.toString().trim();
-    const originalPrice =
-      originalPriceRaw === "" || originalPriceRaw == null
-        ? null
-        : Number(originalPriceRaw);
-
-    const categoryId = formData.get("categoryId")?.toString().trim() || null;
-    const imageFiles = formData.getAll("images").filter(isFileLike);
-    const isFeatured = toBoolean(formData.get("isFeatured"));
-    const isNewArrival = toBoolean(formData.get("isNewArrival"));
-    const isBestSeller = toBoolean(formData.get("isBestSeller"));
-    const status = normalizeStatus(
-      formData.get("status")?.toString().trim().toLowerCase()
-    );
+    const originalPrice = normalizeNullableNumber(body.originalPrice);
+    const categoryId = normalizeNullableText(body.categoryId);
+    const isFeatured = toBoolean(body.isFeatured);
+    const isNewArrival = toBoolean(body.isNewArrival);
+    const isBestSeller = toBoolean(body.isBestSeller);
+    const status = normalizeStatus(normalizeText(body.status).toLowerCase());
 
     if (!name || !slug || !priceRaw || Number.isNaN(price)) {
       return NextResponse.json(
@@ -112,44 +160,26 @@ export async function PATCH(request, context) {
       );
     }
 
-    for (const imageFile of imageFiles) {
-      const imageTypeError = validateImageFileType(imageFile, "Product images");
-      if (imageTypeError) {
-        return NextResponse.json({ error: imageTypeError }, { status: 400 });
-      }
-    }
+    const updateData = {
+      name,
+      slug,
+      description,
+      price,
+      original_price: originalPrice,
+      category_id: categoryId,
+      is_featured: isFeatured,
+      is_new_arrival: isNewArrival,
+      is_best_seller: isBestSeller,
+      status,
+    };
 
-    let imageUrls = existing.images || [];
-
-    if (imageFiles.length > 0) {
-      const uploadedUrls = [];
-      for (let index = 0; index < imageFiles.length; index += 1) {
-        const imageUrl = await uploadProductImage(
-          imageFiles[index],
-          slug || existing.slug,
-          index
-        );
-        uploadedUrls.push(imageUrl);
-      }
-
-      imageUrls = uploadedUrls;
+    if (imagesProvided) {
+      updateData.images = imageUrls.length ? imageUrls : null;
     }
 
     const { data, error } = await supabase
       .from("products")
-      .update({
-        name,
-        slug,
-        description,
-        price,
-        original_price: originalPrice,
-        category_id: categoryId,
-        images: imageUrls.length ? imageUrls : null,
-        is_featured: isFeatured,
-        is_new_arrival: isNewArrival,
-        is_best_seller: isBestSeller,
-        status,
-      })
+      .update(updateData)
       .eq("id", productId)
       .select(
         "id, name, slug, description, price, original_price, category_id, images, is_featured, is_new_arrival, is_best_seller, status, created_at, category:categories(id, name, slug)"
@@ -167,7 +197,7 @@ export async function PATCH(request, context) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    if (imageFiles.length > 0) {
+    if (imagesProvided && existing.images?.length) {
       try {
         await deleteProductImages(existing.images || []);
       } catch {
