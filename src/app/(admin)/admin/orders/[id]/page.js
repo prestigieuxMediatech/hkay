@@ -32,7 +32,7 @@ export default function OrderDetailPage({ params }) {
             </div>
             <div className="mb-3">
               <p className="text-sm text-muted-foreground">Phone</p>
-              <p className="text-sm font-medium">+91 98765 43210</p>
+              <p className="text-sm font-medium">+91 88501 49101</p>
             </div>
             <div className="mb-3">
               <p className="text-sm text-muted-foreground">Email</p>

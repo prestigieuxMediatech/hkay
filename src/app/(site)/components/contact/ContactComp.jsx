@@ -104,7 +104,7 @@ function ContactComp() {
                   Email
                 </h4>
                 <p className="text-gray-600 mt-1">
-                  info.hkay@gmail.com
+                  hkayhandmadeleather@gmail.com
                 </p>
               </div>
 
@@ -113,7 +113,7 @@ function ContactComp() {
                   Phone / WhatsApp
                 </h4>
                 <p className="text-gray-600 mt-1">
-                  +91 98765 43210
+                  +91 88501 49101
                 </p>
               </div>
 

@@ -8,11 +8,16 @@ export default function Footer() {
     { label: "Blog", href: "/blog" },
     { label: "Contact", href: "/contact" },
   ];
-  const support = ["Help Center", "Shipping", "Returns", "Privacy Policy"];
+  const support = ["Help Center", "Shipping", "Returns"];
+  const policies = [
+    { label: "Terms & Conditions", href: "/terms-and-conditions" },
+    { label: "Privacy Policy", href: "/privacy-policy" },
+    { label: "Refund Policy", href: "/refund-policy" },
+  ];
 
   return (
     <footer className="border-t bg-gray-50 px-6 py-12 md:px-10 md:py-14 lg:px-20">
-      <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
         <div className="sm:col-span-2 lg:col-span-1">
           <h3 className="text-2xl font-bold text-gray-900 md:text-3xl">HKAY</h3>
           <p className="mt-4 text-gray-600 leading-7">
@@ -41,10 +46,21 @@ export default function Footer() {
         </div>
 
         <div>
+          <h4 className="text-lg font-semibold text-gray-900">Policies</h4>
+          <div className="mt-4 space-y-3 text-gray-600">
+            {policies.map((item) => (
+              <Link key={item.label} href={item.href} className="block hover:text-black">
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div>
           <h4 className="text-lg font-semibold text-gray-900">Contact</h4>
           <div className="mt-4 space-y-3 text-gray-600">
             <p>support@hkay.com</p>
-            <p>+91 98765 43210</p>
+            <p>+91 88501 49101</p>
             <p>Available Monday to Saturday</p>
           </div>
         </div>
