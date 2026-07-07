@@ -2,15 +2,28 @@
 
 import { useCart } from '../components/CartContext'
 import Link from 'next/link'
+import { useUser } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity } = useCart()
-
+  const { isSignedIn, isLoaded } = useUser()
+  const router = useRouter()
+  
   const total = cartItems.reduce((sum, item) => {
     const price = item.products?.price || 0
     return sum + price * item.quantity
   }, 0)
+
+  function handleCheckoutClick() {
+    if (!isLoaded) return
+    if (!isSignedIn) {
+      router.push('/sign-in?redirect_url=/checkout')
+      return
+    }
+    router.push('/checkout')
+  }
 
   // empty cart state
   if (cartItems.length === 0) {
@@ -197,13 +210,13 @@ export default function CartPage() {
               </p>
             </div>
 
-            <Link
-              href="/checkout"
+            <button
+              onClick={handleCheckoutClick}
               className="w-full py-3.5 rounded-xl text-sm font-medium text-white text-center block transition hover:opacity-90"
               style={{ background: '#1c0d02' }}
             >
               Proceed to Checkout
-            </Link>
+            </button>
 
             <Link
               href="/shop"

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCart } from '../components/CartContext'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
@@ -9,13 +9,19 @@ import { ArrowLeft, ShoppingBag } from 'lucide-react'
 
 export default function CheckoutPage() {
   const { cartItems, cartCount } = useCart()
-  const { user } = useUser()
+  const { user, isLoaded, isSignedIn } = useUser()
   const router = useRouter()
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   // form state
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.replace('/sign-in?redirect_url=/checkout')
+    }
+  }, [isLoaded, isSignedIn, router])
+
   const [form, setForm] = useState({
     fullName: user?.fullName || '',
     email: user?.emailAddresses?.[0]?.emailAddress || '',
@@ -70,7 +76,7 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user?.id || 'guest',
+          userId: user.id ,
           email: form.email,
           items,
           shippingAddress,
@@ -114,6 +120,13 @@ export default function CheckoutPage() {
     )
   }
 
+  if (!isLoaded || !isSignedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-stone-500 text-sm">Redirecting to sign in...</p>
+      </div>
+    )
+  }
   return (
     <div className="min-h-screen bg-stone-50 pb-16">
 
