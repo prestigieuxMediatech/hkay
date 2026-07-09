@@ -13,6 +13,7 @@ export default function OrderConfirmationPage({ params }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!id) return
     async function fetchOrder() {
       try {
         const res = await fetch(`/api/orders/${id}`)
