@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Script from 'next/script'
 import { useCart } from '../components/CartContext'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
@@ -53,7 +54,6 @@ export default function CheckoutPage() {
     setError('')
 
     try {
-      // build order items from cart
       const items = cartItems.map(item => ({
         product_id: item.product_id,
         name: item.products?.name,
@@ -72,33 +72,99 @@ export default function CheckoutPage() {
         pincode: form.pincode,
       }
 
-      const res = await fetch('/api/orders', {
+      const createOrderRes = await fetch('/api/razorpay/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id ,
-          email: form.email,
-          items,
-          shippingAddress,
-          subtotal,
-          shippingFee,
-          total,
-        })
+        body: JSON.stringify({ items })
       })
 
-      const data = await res.json()
+      const createOrderData = await createOrderRes.json()
 
-      if (!res.ok) {
-        setError(data.error || 'Failed to place order')
+      if (!createOrderRes.ok) {
+        setError(createOrderData.error || 'Failed to start payment')
+        setLoading(false)
         return
       }
 
-      // redirect to order confirmation page
-      router.push(`/order-confirmation/${data.id}`)
+      const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+
+      if (!razorpayKeyId || typeof window === 'undefined' || !window.Razorpay) {
+        setError('Payment gateway is still loading. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      const razorpayOptions = {
+        key: razorpayKeyId,
+        amount: createOrderData.amount,
+        currency: createOrderData.currency,
+        name: 'Hkay',
+        description: 'Leather goods order',
+        order_id: createOrderData.id,
+        prefill: {
+          name: form.fullName,
+          email: form.email,
+          contact: form.phone,
+        },
+        theme: {
+          color: '#1c0d02',
+        },
+        modal: {
+          ondismiss: () => {
+            setLoading(false)
+            setError('Payment cancelled')
+          },
+        },
+        handler: async (response) => {
+          try {
+            const verifyRes = await fetch('/api/razorpay/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                email: form.email,
+                items,
+                shippingAddress,
+                subtotal,
+                shippingFee,
+                total,
+              }),
+            })
+
+            const verifyData = await verifyRes.json()
+
+            if (!verifyRes.ok) {
+              setError(verifyData.error || 'Payment verification failed')
+              return
+            }
+
+            router.push(`/order-confirmation/${verifyData.id}`)
+          } catch (err) {
+            setError('Something went wrong while verifying payment. Please try again.')
+          } finally {
+            setLoading(false)
+          }
+        },
+      }
+
+      const razorpayInstance = new window.Razorpay(razorpayOptions)
+
+      razorpayInstance.on('payment.failed', (response) => {
+        setLoading(false)
+        setError(
+          response?.error?.description ||
+          response?.error?.reason ||
+          response?.error?.step ||
+          'Payment failed'
+        )
+      })
+
+      razorpayInstance.open()
 
     } catch (err) {
       setError('Something went wrong. Please try again.')
-    } finally {
       setLoading(false)
     }
   }
@@ -129,6 +195,10 @@ export default function CheckoutPage() {
   }
   return (
     <div className="min-h-screen bg-stone-50 pb-16">
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="lazyOnload"
+      />
 
       {/* Dark banner */}
       <div className="bg-stone-900 h-[200px] sm:h-[220px] flex items-end px-6 pb-8 md:px-10 lg:px-20">

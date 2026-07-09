@@ -2,9 +2,10 @@
 import { useState, useEffect } from "react"
 import { useUser, SignInButton, UserButton } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
-import { Heart, ShoppingCart, User, Menu, ChevronRight } from "lucide-react"
+import { Heart, ShoppingCart, User, Menu, ChevronRight, Package } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useCart } from './CartContext'
 import {
     Sheet,
@@ -20,6 +21,7 @@ export default function Header() {
     const [menuOpen, setMenuOpen] = useState(false)
     const { cartCount } = useCart()
     const { isLoaded, isSignedIn } = useUser()
+    const router = useRouter()
 
     useEffect(() => {
         const handleScroll = () => {
@@ -104,7 +106,15 @@ export default function Header() {
                                         avatarBox: "w-9 h-9",
                                     },
                                 }}
-                            />
+                            >
+                                <UserButton.MenuItems>
+                                    <UserButton.Action
+                                        label="My Orders"
+                                        labelIcon={<Package size={16} />}
+                                        onClick={() => router.push('/orders')}
+                                    />
+                                </UserButton.MenuItems>
+                            </UserButton>
                         </div>
                     ) : null}
 
@@ -188,6 +198,20 @@ export default function Header() {
                                         </Link>
                                     </SheetClose>
                                 ))}
+                                {isSignedIn && (
+                                    <SheetClose asChild>
+                                        <Link
+                                            href="/orders"
+                                            className="flex items-center justify-between rounded-lg px-3 py-4 text-base font-medium text-gray-900 transition-colors hover:bg-gray-50 hover:text-gray-600"
+                                        >
+                                            My Orders
+                                            <ChevronRight
+                                                size={18}
+                                                className="text-gray-400"
+                                            />
+                                        </Link>
+                                    </SheetClose>
+                                )}
                             </nav>
 
                             <div className="border-t border-gray-100 px-6 py-5">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
@@ -15,73 +15,57 @@ import {
   TableCell,
 } from "@/components/ui/table"
 
-const orders = [
-  {
-    id: "1042",
-    customer: "Priya M.",
-    product: "Slim Wallet",
-    amount: "₹1,100",
-    date: "Jun 10, 2026",
-    status: "Paid",
-    badgeClass: "bg-green-100 text-green-700",
-    tab: "all",
-  },
-  {
-    id: "1041",
-    customer: "Arjun K.",
-    product: "Briefcase Pro",
-    amount: "₹4,200",
-    date: "Jun 9, 2026",
-    status: "Shipped",
-    badgeClass: "bg-blue-100 text-blue-700",
-    tab: "shipped",
-  },
-  {
-    id: "1040",
-    customer: "Sneha R.",
-    product: "Tote Bag",
-    amount: "₹3,500",
-    date: "Jun 9, 2026",
-    status: "Pending",
-    badgeClass: "bg-amber-100 text-amber-700",
-    tab: "pending",
-  },
-  {
-    id: "1039",
-    customer: "Rohan S.",
-    product: "Classic Belt",
-    amount: "₹900",
-    date: "Jun 8, 2026",
-    status: "Delivered",
-    badgeClass: "bg-green-100 text-green-700",
-    tab: "delivered",
-  },
-  {
-    id: "1038",
-    customer: "Meera D.",
-    product: "Watch Strap",
-    amount: "₹999",
-    date: "Jun 7, 2026",
-    status: "Delivered",
-    badgeClass: "bg-green-100 text-green-700",
-    tab: "delivered",
-  },
-]
+const statusBadgeClass = {
+  paid: "bg-green-100 text-green-700",
+  pending_payment: "bg-amber-100 text-amber-700",
+  shipped: "bg-blue-100 text-blue-700",
+  delivered: "bg-green-100 text-green-700",
+  cancelled: "bg-red-100 text-red-700",
+}
 
-const tabs = [
-  { key: "all", label: "All", count: 48 },
-  { key: "pending", label: "Pending", count: 5 },
-  { key: "shipped", label: "Shipped", count: 18 },
-  { key: "delivered", label: "Delivered", count: 25 },
-]
+function formatStatus(status) {
+  return status
+    ?.split('_')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ') || 'Unknown'
+}
 
 export default function OrdersPage() {
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("all")
+
+  useEffect(() => {
+    async function fetchOrders() {
+      try {
+        const res = await fetch('/api/admin/orders')
+        const data = await res.json()
+        setOrders(Array.isArray(data) ? data : [])
+      } catch (err) {
+        console.error('Failed to fetch orders:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchOrders()
+  }, [])
+
+  const tabs = [
+    { key: "all", label: "All", count: orders.length },
+    { key: "pending_payment", label: "Pending", count: orders.filter(o => o.status === 'pending_payment').length },
+    { key: "paid", label: "Paid", count: orders.filter(o => o.status === 'paid').length },
+    { key: "shipped", label: "Shipped", count: orders.filter(o => o.status === 'shipped').length },
+    { key: "delivered", label: "Delivered", count: orders.filter(o => o.status === 'delivered').length },
+  ]
 
   const filteredOrders =
     activeTab === "all"
       ? orders
-      : orders.filter((order) => order.tab === activeTab)
+      : orders.filter((order) => order.status === activeTab)
+
+  if (loading) {
+    return <p className="text-sm text-muted-foreground">Loading orders...</p>
+  }
 
   return (
     <div>
@@ -106,7 +90,7 @@ export default function OrdersPage() {
               <TableRow>
                 <TableHead>Order ID</TableHead>
                 <TableHead>Customer</TableHead>
-                <TableHead>Product</TableHead>
+                <TableHead>Items</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
@@ -116,13 +100,21 @@ export default function OrdersPage() {
             <TableBody>
               {filteredOrders.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell>#{order.id}</TableCell>
-                  <TableCell>{order.customer}</TableCell>
-                  <TableCell>{order.product}</TableCell>
-                  <TableCell>{order.amount}</TableCell>
-                  <TableCell>{order.date}</TableCell>
+                  <TableCell>#{order.id.slice(0, 8).toUpperCase()}</TableCell>
+                  <TableCell>{order.shipping_address?.fullName || '—'}</TableCell>
                   <TableCell>
-                    <Badge className={order.badgeClass}>{order.status}</Badge>
+                    {order.items?.length || 0} item{order.items?.length === 1 ? '' : 's'}
+                  </TableCell>
+                  <TableCell>₹{order.total?.toLocaleString('en-IN')}</TableCell>
+                  <TableCell>
+                    {new Date(order.created_at).toLocaleDateString('en-IN', {
+                      day: 'numeric', month: 'short', year: 'numeric'
+                    })}
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={statusBadgeClass[order.status] || "bg-stone-100 text-stone-600"}>
+                      {formatStatus(order.status)}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Button variant="outline" size="sm" asChild>
@@ -143,15 +135,15 @@ export default function OrdersPage() {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-bold">#{order.id}</p>
+                    <p className="font-bold">#{order.id.slice(0, 8).toUpperCase()}</p>
                     <p className="text-sm text-muted-foreground">
-                      {order.product}
+                      {order.shipping_address?.fullName || '—'}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">{order.amount}</p>
-                    <Badge className={`mt-1 ${order.badgeClass}`}>
-                      {order.status}
+                    <p className="font-medium">₹{order.total?.toLocaleString('en-IN')}</p>
+                    <Badge className={`mt-1 ${statusBadgeClass[order.status] || "bg-stone-100 text-stone-600"}`}>
+                      {formatStatus(order.status)}
                     </Badge>
                   </div>
                 </div>

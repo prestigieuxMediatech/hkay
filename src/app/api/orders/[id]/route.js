@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 
 export async function GET(request, { params }) {
   try {
-    const { id } = params
+    const { id } = await params
 
     const { data, error } = await supabase
       .from('orders')
@@ -23,7 +23,7 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
 
     const { data, error } = await supabase
