@@ -14,6 +14,12 @@ const statusBadgeClass = {
   cancelled: "bg-red-100 text-red-700",
 }
 
+const shipmentStatusBadgeClass = {
+  not_shipped: "bg-stone-100 text-stone-600",
+  shipment_created: "bg-blue-100 text-blue-700",
+  delivered: "bg-green-100 text-green-700",
+}
+
 function formatStatus(status) {
   return status
     ?.split('_')
@@ -26,6 +32,8 @@ export default function OrderDetailPage({ params }) {
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
+  const [shipping, setShipping] = useState(false)
+  const [shipError, setShipError] = useState(null)
 
   useEffect(() => {
     async function resolveParams() {
@@ -67,6 +75,29 @@ export default function OrderDetailPage({ params }) {
       console.error('Failed to update order:', err)
     } finally {
       setUpdating(false)
+    }
+  }
+
+  async function shipViaShiprocket() {
+    setShipping(true)
+    setShipError(null)
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/ship`, {
+        method: 'POST',
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setShipError(data.error || 'Failed to create shipment')
+        return
+      }
+
+      setOrder(data.data)
+    } catch (err) {
+      console.error('Failed to ship order:', err)
+      setShipError('Something went wrong. Please try again.')
+    } finally {
+      setShipping(false)
     }
   }
 
@@ -187,6 +218,72 @@ export default function OrderDetailPage({ params }) {
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Shipping (Shiprocket)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {order.shiprocket_order_id ? (
+            <>
+              <div className="mb-3 flex items-center gap-2">
+                <p className="text-sm text-muted-foreground">Status</p>
+                <Badge className={shipmentStatusBadgeClass[order.shipment_status] || "bg-stone-100 text-stone-600"}>
+                  {formatStatus(order.shipment_status)}
+                </Badge>
+              </div>
+              <div className="mb-3">
+                <p className="text-sm text-muted-foreground">Shiprocket Order ID</p>
+                <p className="text-sm font-medium">{order.shiprocket_order_id}</p>
+              </div>
+              {order.awb_code && (
+                <div className="mb-3">
+                  <p className="text-sm text-muted-foreground">AWB Code</p>
+                  <p className="text-sm font-medium">{order.awb_code}</p>
+                </div>
+              )}
+              {order.courier_name && (
+                <div className="mb-3">
+                  <p className="text-sm text-muted-foreground">Courier</p>
+                  <p className="text-sm font-medium">{order.courier_name}</p>
+                </div>
+              )}
+              {order.tracking_url && (
+                <a
+                  href={order.tracking_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm underline"
+                  style={{ color: "#1c0d02" }}
+                >
+                  Track shipment →
+                </a>
+              )}
+            </>
+          ) : order.status === 'paid' ? (
+            <>
+              <p className="mb-3 text-sm text-muted-foreground">
+                This order hasn't been shipped yet.
+              </p>
+              <Button
+                className="w-full text-white md:w-auto"
+                style={{ background: "#1c0d02" }}
+                disabled={shipping}
+                onClick={shipViaShiprocket}
+              >
+                {shipping ? 'Creating shipment...' : 'Ship via Shiprocket'}
+              </Button>
+              {shipError && (
+                <p className="mt-2 text-sm text-red-600">{shipError}</p>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Order must be paid before it can be shipped.
+            </p>
+          )}
         </CardContent>
       </Card>
 

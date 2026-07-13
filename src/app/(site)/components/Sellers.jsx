@@ -3,45 +3,22 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from '@/lib/supabase'
+import Link from "next/link";
+import AddToCartButton from "./AddToCartButton";// adjust path to match your project
 
 async function Sellers() {
 
-
-  const { data:products = [] , error } = await supabase 
+  const { data: products = [], error } = await supabase
     .from("products")
-    .select("id,name,images,price,status,is_best_seller")
-    .eq("status","active")
-    .eq("is_best_seller",true)
+    .select("id,name,slug,images,price,status,is_best_seller")
+    .eq("status", "active")
+    .eq("is_best_seller", true)
     .limit(4);
 
-  if(error){
-    console.error("Failed to load best sellers",error.message);
+  if (error) {
+    console.error("Failed to load best sellers", error.message);
     return null;
   }
-  /*
-  const products = [
-    {
-      name: "Leather Travel Bag",
-      image: "/Bags.png",
-      price: "₹4,999",
-    },
-    {
-      name: "Leather Wallet",
-      image: "/Wallets.png",
-      price: "₹1,499",
-    },
-    {
-      name: "Leather Belt",
-      image: "/Belts.png",
-      price: "₹1,299",
-    },
-    {
-      name: "Leather Watch Strap",
-      image: "/Straps.png",
-      price: "₹999",
-    },
-  ];
-  */
 
   return (
     <section className="px-6 py-12 md:px-10 md:py-16 lg:px-20">
@@ -79,54 +56,59 @@ async function Sellers() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {products.map((item) => (
           <Card
-            key={item.name}
+            key={item.id}
             data-aos="fade-up"
-            className="group overflow-hidden rounded-2xl border bg-white p-0 py-0 gap-0 shadow-sm transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-lg"
+            className="group overflow-hidden rounded-2xl border 
+              bg-white p-0 py-0 gap-0 shadow-sm transition-all 
+              duration-300 hover:-translate-y-1 hover:shadow-lg 
+              flex flex-col"
           >
             <CardContent className="p-0 flex flex-col flex-1">
-              {/* Product Image */}
-              <div className="relative aspect-[4/5] w-full overflow-hidden bg-stone-100">
-                {item.images ? (
-                  <Image
-                    src={item.images?.[0]}
-                    alt={item.name}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+
+              {/* image links to product page */}
+              <Link href={`/shop/${item.slug}`}>
+                <div className="relative aspect-[4/5] w-full 
+                  overflow-hidden bg-stone-100">
+                  {item.images?.[0] ? (
+                    <Image
+                      src={item.images[0]}
+                      alt={item.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 
+                        (max-width: 1024px) 50vw, 25vw"
+                      className="object-cover transition-transform 
+                        duration-500 group-hover:scale-105"
+                    />
                   ) : (
-                  <div className="flex h-full items-center justify-center bg-stone-200">
-                    <span className="text-sm font-medium text-stone-500">
-                      No image
-                    </span>
-                  </div>
-                )}
-              </div>
+                    <div className="flex h-full items-center 
+                      justify-center bg-stone-200">
+                      <span className="text-sm font-medium 
+                        text-stone-500">No image</span>
+                    </div>
+                  )}
+                </div>
+              </Link>
 
-              {/* Product Details */}
               <div className="p-5 flex flex-col flex-1 justify-between">
-                <h3 className="text-xl font-semibold text-gray-900">
-                  {item.name}
-                </h3>
+                <div>
+                  {/* name links to product page */}
+                  <Link href={`/shop/${item.slug}`}>
+                    <h3 className="text-xl font-semibold 
+                      text-gray-900 hover:underline">
+                      {item.name}
+                    </h3>
+                  </Link>
+                  <p className="mt-2 text-2xl font-bold text-black">
+                    {"\u20B9"}{item.price.toLocaleString("en-IN")}
+                  </p>
+                </div>
 
-                <p className="mt-2 text-2xl font-bold text-black">
-                  {item.price}
-                </p>
-
-                <Button
-                  className="
-                    w-full
-                    mt-5
-                    py-5
-                    rounded-lg
-                    bg-black
-                    text-white
-                    hover:bg-gray-900
-                  "
-                >
-                  Add to Cart
-                </Button>
+                {/* Add to cart button — outside Link */}
+                <div className="mt-5">
+                  <AddToCartButton product={item} />
+                </div>
               </div>
+
             </CardContent>
           </Card>
         ))}
