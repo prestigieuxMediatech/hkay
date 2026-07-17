@@ -2,6 +2,8 @@ import { auth } from '@clerk/nextjs/server'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { supabase } from '@/lib/supabase'
 import Razorpay from 'razorpay'
+import { generateInvoiceForOrder } from '@/lib/invoices/generateInvoiceForOrder'
+import { generateOrderNumber } from '@/lib/invoices/generateOrderNumber'
 
 export const runtime = 'nodejs'
 
@@ -89,11 +91,15 @@ export async function POST(request) {
     const razorpayOrder = await razorpay.orders.fetch(razorpay_order_id)
     const verifiedTotal = razorpayOrder.amount / 100 // paise -> rupees
 
-    // 4. Insert order using server-verified amount, not client-sent total
+    // 4. Generate a clean, sequential order number
+    const orderNo = await generateOrderNumber()
+
+    // 5. Insert order using server-verified amount, not client-sent total
     const { data, error } = await supabase
       .from('orders')
       .insert({
         user_id: userId,
+        order_no: orderNo,
         items,
         shipping_address: {
           ...shippingAddress,
@@ -111,6 +117,16 @@ export async function POST(request) {
 
     if (error) {
       throw error
+    }
+
+    // 6. Generate invoice — wrapped separately so a PDF/HSN failure never
+    // breaks the payment confirmation response. The order is already paid
+    // and saved; invoice generation can be retried by admin if it fails.
+    try {
+      await generateInvoiceForOrder(data.id)
+    } catch (invoiceError) {
+      console.error(`Invoice generation failed for order ${data.id}:`, invoiceError)
+      // order still returns successfully to the customer — payment succeeded
     }
 
     return Response.json(data)

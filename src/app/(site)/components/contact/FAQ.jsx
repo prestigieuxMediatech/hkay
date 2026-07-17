@@ -1,4 +1,3 @@
-
 "use client"
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -75,38 +74,20 @@ function FAQ() {
       </div>
 
       {/* FAQ List */}
-      {/* FAQ List */}
       <div className="max-w-4xl mx-auto space-y-6">
         {faqs.map((faq, index) => (
           <Card
             key={index}
             data-aos="fade-up"
-            className={`
-              border
-              rounded-2xl
-              shadow-sm
-              transition-all
-              duration-300
-              overflow-hidden
-              ${
-                openIndex === index
-                  ? "border-black"
-                  : ""
-              }
-            `}
+            className={`border rounded-2xl shadow-sm transition-all duration-300 overflow-hidden ${
+              openIndex === index ? "border-black" : ""
+            }`}
           >
             <CardContent className="p-0">
               {/* Question */}
               <button
                 onClick={() => toggleFaq(index)}
-                className="
-                  w-full
-                  flex
-                  items-center
-                  justify-between
-                  text-left
-                  p-6
-                "
+                className="w-full flex items-center justify-between text-left p-6"
               >
                 <span className="pr-4 text-base font-semibold text-gray-900 sm:text-lg">
                   {faq.question}
@@ -114,16 +95,9 @@ function FAQ() {
 
                 <ChevronDown
                   size={22}
-                  className={`
-                    transition-transform
-                    duration-300
-                    flex-shrink-0
-                    ${
-                      openIndex === index
-                        ? "rotate-180"
-                        : ""
-                    }
-                  `}
+                  className={`transition-transform duration-300 flex-shrink-0 ${
+                    openIndex === index ? "rotate-180" : ""
+                  }`}
                 />
               </button>
 

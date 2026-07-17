@@ -1,73 +1,47 @@
 export const metadata = {
   title: "Terms & Conditions | HKAY Leather Goods",
-  description: "Read the Terms & Conditions for HKAY Leather Goods, including orders, payments, shipping, liability, and governing law.",
+  description:
+    "Read the Terms & Conditions for HKAY Leather Goods, including handmade craftsmanship, pricing, custom orders, product images, and intellectual property.",
 };
 
 const sections = [
   {
-    title: "1. General",
+    title: "Handmade Craftsmanship",
     content: [
-      "These terms govern your use of our website and any purchases made through it. We reserve the right to update or modify these terms at any time without prior notice. Continued use of the website after changes constitutes acceptance of the revised terms.",
+      "All our products are individually handcrafted using carefully selected premium leather. Every item is made entirely by hand with great attention to detail. As a result, slight variations in leather grain, texture, color, stitching, and finish are natural characteristics of genuine handmade craftsmanship and should not be considered defects. These unique characteristics make every product one of a kind.",
     ],
   },
   {
-    title: "2. Products",
+    title: "Product Availability",
     content: [
-      "All products listed on HKAY are handcrafted leather goods. Since our items are made from natural leather, slight variations in color, texture, and grain are natural characteristics of the material and not considered defects.",
+      "Most of our products are handcrafted after an order is confirmed. Production time may vary depending on the complexity of the design, customization requirements, and our current production schedule.",
     ],
   },
   {
-    title: "3. Pricing",
+    title: "Pricing",
     content: [
-      "All prices listed on the website are in Indian Rupees (INR) and are inclusive of applicable taxes unless stated otherwise. We reserve the right to change product prices at any time without prior notice.",
+      "All prices displayed on the website are shown in the selected currency and are subject to change without prior notice. Once an order has been successfully placed and confirmed, the agreed price will remain applicable for that purchase.",
     ],
   },
   {
-    title: "4. Orders",
+    title: "Custom Orders",
     content: [
-      "Once an order is placed and payment is confirmed, you will receive an order confirmation via email. We reserve the right to cancel any order due to product unavailability, pricing errors, or suspected fraudulent activity, in which case a full refund will be issued.",
+      "Customized and personalized products are specially handcrafted according to the customer's specifications. Therefore, once production has started, custom orders cannot be cancelled, modified, exchanged, or refunded.",
     ],
   },
   {
-    title: "5. Payments",
+    title: "Product Images",
     content: [
-      "We accept payments through secure third-party payment gateways. HKAY does not store your card or payment details on its servers.",
+      "We make every effort to display our products as accurately as possible. However, due to the natural characteristics of genuine leather, handmade craftsmanship, lighting conditions, and screen settings, slight variations in color, texture, and finish may occur.",
     ],
   },
   {
-    title: "6. Shipping",
+    title: "Intellectual Property",
     content: [
-      "Orders are processed and shipped within [X] business days. Delivery timelines may vary based on location and courier availability. HKAY is not responsible for delays caused by courier partners or unforeseen circumstances.",
-    ],
-  },
-  {
-    title: "7. Intellectual Property",
-    content: [
-      "All content on this website, including images, logos, and product designs, is the property of HKAY Leather Goods and may not be reproduced without written permission.",
-    ],
-  },
-  {
-    title: "8. Limitation of Liability",
-    content: [
-      "HKAY shall not be liable for any indirect, incidental, or consequential damages arising from the use of our website or products.",
-    ],
-  },
-  {
-    title: "9. Governing Law",
-    content: [
-      "These terms are governed by the laws of India, and any disputes shall be subject to the jurisdiction of the courts in [City, State].",
-    ],
-  },
-  {
-    title: "10. Contact Us",
-    content: [
-      "For any questions regarding these Terms & Conditions, please contact us at hkayhandmadeleather@gmail.com or +91 88501 49101.",
+      "All product designs, photographs, logos, branding, graphics, website content, and other intellectual property displayed on this website are the exclusive property of HKAY LEATHER GOODS. Any unauthorized copying, reproduction, distribution, or commercial use is strictly prohibited without prior written permission.",
     ],
   },
 ];
-
-const intro =
-  'Welcome to HKAY Leather Goods ("HKAY," "we," "us," or "our"). By accessing or using our website (hkayleathergoods.com) and purchasing our products, you agree to be bound by the following Terms & Conditions. Please read them carefully before placing an order.';
 
 export default function TermsAndConditionsPage() {
   return (
@@ -82,9 +56,12 @@ export default function TermsAndConditionsPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
         <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm sm:p-8 lg:p-10">
           <div className="space-y-8 text-sm leading-8 text-stone-700 sm:text-base">
-            <p className="text-stone-500">Last updated: 07/07/2026</p>
+            <p>Welcome to HKAY LEATHER GOODS.</p>
 
-            <p>{intro}</p>
+            <p>
+              By accessing our website and placing an order, you agree to the following Terms &amp;
+              Conditions.
+            </p>
 
             {sections.map((section) => (
               <section key={section.title} className="space-y-3">

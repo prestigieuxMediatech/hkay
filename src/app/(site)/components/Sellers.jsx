@@ -104,8 +104,8 @@ async function Sellers() {
                 </div>
 
                 {/* Add to cart button — outside Link */}
-                <div className="mt-5">
-                  <AddToCartButton product={item} />
+                <div className="mt-5 cursor-pointer">
+                  <AddToCartButton product={item} className='cursor-pointer'/>
                 </div>
               </div>
 

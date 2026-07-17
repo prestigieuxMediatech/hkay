@@ -1,78 +1,48 @@
 export const metadata = {
   title: "Privacy Policy | HKAY Leather Goods",
-  description: "Read how HKAY Leather Goods collects, uses, shares, and protects your personal information when you visit or purchase from our website.",
+  description:
+    "Read how HKAY Leather Goods collects, uses, shares, and protects your personal information.",
 };
 
 const sections = [
   {
-    title: "1. Information We Collect",
+    title: "Information We Collect",
     content: [
-      "We may collect the following information when you use our website:",
+      "We may collect information including your name, email address, phone number, billing address, shipping address, and order details for the purpose of processing and delivering your purchases.",
+    ],
+  },
+  {
+    title: "How We Use Your Information",
+    content: [
+      "Your personal information is used solely for the following purposes:",
     ],
     list: [
-      "Personal details (name, email address, phone number, shipping address) provided during account creation or checkout",
-      "Payment information, processed securely through our third-party payment gateway (we do not store card details)",
-      "Browsing data such as IP address, device type, and pages visited, for analytics purposes",
+      "Processing and fulfilling your orders",
+      "Providing customer support",
+      "Sending order confirmations and shipping updates",
+      "Improving our products, services, and customer experience",
+      "Communicating important information related to your purchase",
     ],
   },
   {
-    title: "2. How We Use Your Information",
+    title: "Payment Security",
     content: [
-      "We use the information collected to:",
-    ],
-    list: [
-      "Process and fulfill your orders",
-      "Communicate order updates, shipping, and delivery information",
-      "Improve our website and customer experience",
-      "Send promotional emails, only if you have opted in",
+      "All online payments are securely processed through trusted third-party payment gateways. HKAY LEATHER GOODS does not store or have access to your complete payment card or banking information.",
     ],
   },
   {
-    title: "3. Data Sharing",
+    title: "Information Sharing",
     content: [
-      "We do not sell or rent your personal information to third parties. We may share necessary information with trusted partners such as payment gateways and courier/logistics providers solely to complete your order.",
+      "We do not sell, rent, or trade your personal information with any third party. Your information is shared only with trusted payment providers and logistics partners whenever necessary to complete your order or comply with legal obligations.",
     ],
   },
   {
-    title: "4. Data Security",
+    title: "Data Protection",
     content: [
-      "We implement reasonable technical and organizational measures to protect your personal data. However, no method of transmission over the internet is 100% secure.",
-    ],
-  },
-  {
-    title: "5. Cookies",
-    content: [
-      "Our website may use cookies to enhance user experience, such as remembering cart items and login sessions. You can disable cookies through your browser settings, though this may affect website functionality.",
-    ],
-  },
-  {
-    title: "6. Your Rights",
-    content: [
-      "You may request access to, correction of, or deletion of your personal data by contacting us at hkayhandmadeleather@gmail.com.",
-    ],
-  },
-  {
-    title: "7. Third-Party Links",
-    content: [
-      "Our website may contain links to third-party sites. We are not responsible for the privacy practices of those websites.",
-    ],
-  },
-  {
-    title: "8. Changes to This Policy",
-    content: [
-      "We may update this Privacy Policy periodically. Changes will be posted on this page with an updated revision date.",
-    ],
-  },
-  {
-    title: "9. Contact Us",
-    content: [
-      "If you have questions about this Privacy Policy, please contact us at hkayhandmadeleather@gmail.com or +91 88501 49101.",
+      "We implement appropriate technical and organizational security measures to protect your personal information against unauthorized access, disclosure, alteration, or misuse.",
     ],
   },
 ];
-
-const intro =
-  'HKAY Leather Goods ("we," "us," or "our") values your privacy. This Privacy Policy explains how we collect, use, and protect your personal information when you visit or make a purchase on hkayleathergoods.com.';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -87,9 +57,11 @@ export default function PrivacyPolicyPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
         <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm sm:p-8 lg:p-10">
           <div className="space-y-8 text-sm leading-8 text-stone-700 sm:text-base">
-            <p className="text-stone-500">Last updated: 07/07/2026</p>
-
-            <p>{intro}</p>
+            <p>
+              At HKAY LEATHER GOODS, protecting your privacy is one of our highest priorities. We
+              are committed to safeguarding your personal information and ensuring that your data
+              is handled responsibly and securely.
+            </p>
 
             {sections.map((section) => (
               <section key={section.title} className="space-y-3">
