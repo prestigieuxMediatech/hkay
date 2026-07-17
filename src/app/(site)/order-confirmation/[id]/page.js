@@ -10,27 +10,64 @@ export default function OrderConfirmationPage({ params }) {
   const { id } = use(params)
   const { fetchCart } = useCart()
   const [order, setOrder] = useState(null)
+  const [invoice, setInvoice] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [invoiceLoading, setInvoiceLoading] = useState(true)
+  const [invoiceChecked, setInvoiceChecked] = useState(false)
 
   useEffect(() => {
     if (!id) return
+    let isActive = true
+
     async function fetchOrder() {
       try {
         const res = await fetch(`/api/orders/${id}`)
         const data = await res.json()
-        setOrder(data)
+        if (isActive) {
+          setOrder(data)
+        }
       } catch (err) {
         console.error('Failed to fetch order:', err)
       } finally {
-        setLoading(false)
+        if (isActive) {
+          setLoading(false)
+        }
+      }
+    }
+
+    async function fetchInvoice() {
+      try {
+        const res = await fetch(`/api/orders/${id}/invoice`)
+
+        if (!res.ok) {
+          return
+        }
+
+        const data = await res.json()
+
+        if (isActive) {
+          setInvoice(data.invoice)
+        }
+      } catch (err) {
+        console.error('Failed to fetch invoice:', err)
+      } finally {
+        if (isActive) {
+          setInvoiceLoading(false)
+          setInvoiceChecked(true)
+        }
       }
     }
 
     fetchOrder()
+    fetchInvoice()
 
     // clear cart after successful order
     // this will be replaced by payment webhook later
     localStorage.removeItem('hkay_cart')
+
+    return () => {
+      isActive = false
+    }
   }, [id])
 
   if (loading) {
@@ -67,7 +104,7 @@ export default function OrderConfirmationPage({ params }) {
             Order ID: <span className="font-medium text-stone-700">#{id.slice(0, 8).toUpperCase()}</span>
           </p>
           <p className="text-sm text-stone-500">
-            We'll confirm your order shortly via email.
+            We&apos;ll confirm your order shortly via email.
           </p>
         </div>
 
@@ -134,6 +171,50 @@ export default function OrderConfirmationPage({ params }) {
             <p className="text-sm text-stone-500 mt-1">
               📞 {order.shipping_address.phone}
             </p>
+          </div>
+        )}
+
+        {/* Invoice */}
+        {(invoiceLoading || invoiceChecked) && (
+          <div className="bg-white border border-stone-200 rounded-2xl p-6 mb-6">
+            <h3 className="text-sm font-semibold text-stone-900 mb-3">
+              Invoice
+            </h3>
+
+            {invoiceLoading ? (
+              <p className="text-sm text-stone-500">Checking invoice status...</p>
+            ) : invoice ? (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-stone-800">
+                    {invoice.invoice_number}
+                  </p>
+                  <p className="text-xs text-stone-500 mt-1">
+                    Total: ₹{Number(invoice.grand_total || 0).toLocaleString('en-IN')}
+                  </p>
+                </div>
+
+                {invoice.downloadUrl ? (
+                  <a
+                    href={invoice.downloadUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium text-white transition hover:opacity-90"
+                    style={{ background: '#1c0d02' }}
+                  >
+                    Download invoice
+                  </a>
+                ) : (
+                  <p className="text-sm text-stone-500">
+                    Invoice PDF is being prepared.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-stone-500">
+                Your invoice will appear here once it is ready.
+              </p>
+            )}
           </div>
         )}
 

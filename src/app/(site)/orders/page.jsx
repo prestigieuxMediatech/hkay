@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Package, ChevronRight } from 'lucide-react'
+import { Package, ChevronRight, Download } from 'lucide-react'
 
 const statusStyles = {
   paid: 'bg-green-50 text-green-700',
@@ -26,6 +26,8 @@ export default function OrdersPage() {
   const router = useRouter()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [invoiceByOrderId, setInvoiceByOrderId] = useState({})
+  const [invoiceLoading, setInvoiceLoading] = useState(false)
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -36,20 +38,75 @@ export default function OrdersPage() {
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return
 
+    let isActive = true
+
     async function fetchOrders() {
       try {
         const res = await fetch('/api/orders/user')
         const data = await res.json()
-        setOrders(Array.isArray(data) ? data : [])
+
+        if (isActive) {
+          setOrders(Array.isArray(data) ? data : [])
+        }
       } catch (err) {
         console.error('Failed to fetch orders:', err)
       } finally {
-        setLoading(false)
+        if (isActive) {
+          setLoading(false)
+        }
       }
     }
 
     fetchOrders()
+
+    return () => {
+      isActive = false
+    }
   }, [isLoaded, isSignedIn])
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || orders.length === 0) return
+
+    let isActive = true
+
+    async function fetchInvoices() {
+      setInvoiceLoading(true)
+
+      try {
+        const entries = await Promise.all(
+          orders.map(async (order) => {
+            try {
+              const res = await fetch(`/api/orders/${order.id}/invoice`)
+
+              if (!res.ok) {
+                return [order.id, null]
+              }
+
+              const data = await res.json()
+              return [order.id, data.invoice || null]
+            } catch (error) {
+              console.error(`Failed to fetch invoice for order ${order.id}:`, error)
+              return [order.id, null]
+            }
+          })
+        )
+
+        if (isActive) {
+          setInvoiceByOrderId(Object.fromEntries(entries))
+        }
+      } finally {
+        if (isActive) {
+          setInvoiceLoading(false)
+        }
+      }
+    }
+
+    fetchInvoices()
+
+    return () => {
+      isActive = false
+    }
+  }, [orders, isLoaded, isSignedIn])
 
   if (!isLoaded || !isSignedIn || loading) {
     return (
@@ -61,7 +118,6 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-stone-50 pb-16">
-
       {/* Dark banner */}
       <div className="bg-stone-900 h-[200px] sm:h-[220px] flex items-end px-6 pb-8 md:px-10 lg:px-20">
         <div className="mt-20">
@@ -75,7 +131,6 @@ export default function OrdersPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
-
         {orders.length === 0 ? (
           <div className="bg-white border border-stone-200 rounded-2xl p-12 text-center">
             <div className="w-16 h-16 rounded-full bg-stone-100 flex items-center justify-center mx-auto mb-4">
@@ -85,7 +140,7 @@ export default function OrdersPage() {
               No orders yet
             </p>
             <p className="text-sm text-stone-500 mb-6">
-              When you place an order, it'll show up here.
+              When you place an order, it&apos;ll show up here.
             </p>
             <Link
               href="/shop"
@@ -97,47 +152,91 @@ export default function OrdersPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            {orders.map((order) => (
-              <Link
-                key={order.id}
-                href={`/order-confirmation/${order.id}`}
-                className="bg-white border border-stone-200 rounded-2xl p-5 sm:p-6 flex items-center justify-between hover:shadow-md transition"
-              >
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center flex-shrink-0">
-                    <Package size={20} className="text-stone-500" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-stone-900">
-                      Order #{order.id.slice(0, 8).toUpperCase()}
-                    </p>
-                    <p className="text-xs text-stone-500 mt-1">
-                      {new Date(order.created_at).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                      {' · '}
-                      {order.items?.length || 0} item{order.items?.length === 1 ? '' : 's'}
-                    </p>
-                  </div>
-                </div>
+            {orders.map((order) => {
+              const invoice = invoiceByOrderId[order.id]
 
-                <div className="flex items-center gap-4 flex-shrink-0">
-                  <span
-                    className={`text-xs font-medium px-3 py-1 rounded-full ${
-                      statusStyles[order.status] || 'bg-stone-100 text-stone-600'
-                    }`}
-                  >
-                    {formatStatus(order.status)}
-                  </span>
-                  <p className="text-sm font-bold text-stone-900 hidden sm:block">
-                    ₹{order.total?.toLocaleString('en-IN')}
-                  </p>
-                  <ChevronRight size={18} className="text-stone-300" />
+              return (
+                <div
+                  key={order.id}
+                  className="bg-white border border-stone-200 rounded-2xl overflow-hidden hover:shadow-md transition"
+                >
+                  <div className="p-5 sm:p-6 flex items-center justify-between gap-4">
+                    <Link
+                      href={`/order-confirmation/${order.id}`}
+                      className="flex items-center gap-4 min-w-0 flex-1"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center flex-shrink-0">
+                        <Package size={20} className="text-stone-500" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-stone-900">
+                          Order #{order.id.slice(0, 8).toUpperCase()}
+                        </p>
+                        <p className="text-xs text-stone-500 mt-1">
+                          {new Date(order.created_at).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                          {' · '}
+                          {order.items?.length || 0} item{order.items?.length === 1 ? '' : 's'}
+                        </p>
+                      </div>
+                    </Link>
+
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                      <span
+                        className={`text-xs font-medium px-3 py-1 rounded-full ${
+                          statusStyles[order.status] || 'bg-stone-100 text-stone-600'
+                        }`}
+                      >
+                        {formatStatus(order.status)}
+                      </span>
+                      <p className="text-sm font-bold text-stone-900 hidden sm:block">
+                        &#8377;{order.total?.toLocaleString('en-IN')}
+                      </p>
+                      <ChevronRight size={18} className="text-stone-300" />
+                    </div>
+                  </div>
+
+                  <div className="border-t border-stone-100 px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-stone-900">Invoice</p>
+                      {invoiceLoading ? (
+                        <p className="text-xs text-stone-500 mt-1">
+                          Checking invoice status...
+                        </p>
+                      ) : invoice ? (
+                        <p className="text-xs text-stone-500 mt-1">
+                          {invoice.invoice_number}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-stone-500 mt-1">
+                          Invoice not ready yet
+                        </p>
+                      )}
+                    </div>
+
+                    {invoice?.downloadUrl ? (
+                      <a
+                        href={invoice.downloadUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition hover:opacity-90"
+                        style={{ background: '#1c0d02' }}
+                      >
+                        <Download size={16} />
+                        Download invoice
+                      </a>
+                    ) : (
+                      <span className="text-xs text-stone-400">
+                        {invoiceLoading ? 'Loading invoice...' : 'No download available'}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </Link>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
