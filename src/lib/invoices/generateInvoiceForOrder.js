@@ -14,6 +14,28 @@ export async function generateInvoiceForOrder(orderId) {
 
   if (error || !order) throw new Error('Order not found')
 
+  const { data: existingInvoice } = await supabase
+    .from('invoices')
+    .select('*')
+    .eq('order_id', orderId)
+    .maybeSingle()
+
+  if (existingInvoice) {
+    if (!existingInvoice.pdf_url) {
+      await generateAndUploadInvoicePdf(existingInvoice)
+    }
+
+    const { data: refreshedInvoice, error: refreshError } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('id', existingInvoice.id)
+      .single()
+
+    if (refreshError) throw refreshError
+
+    return refreshedInvoice
+  }
+
   const addr = order.shipping_address
 
   const { lineItems, subtotal, totalTax, grandTotal, isIntraState } =

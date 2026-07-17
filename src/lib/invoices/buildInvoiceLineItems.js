@@ -9,7 +9,7 @@ export async function buildInvoiceLineItems(items, buyerState) {
   const itemsWithHsn = await resolveHsnCodes(items)
 
   const lineItems = itemsWithHsn.map((item) => {
-    const lineTotal = round2(item.price * item.quantity) // what the customer actually pays for this line
+    const lineTotal = round2(item.price * item.quantity)
     const tax = calculateLineItemTax({ inclusivePrice: lineTotal, buyerStateCode })
 
     return {
@@ -21,7 +21,8 @@ export async function buildInvoiceLineItems(items, buyerState) {
       cgst: tax.cgst,
       sgst: tax.sgst,
       igst: tax.igst,
-      total: lineTotal, // matches what was actually charged — no mismatch with payment
+      totalTax: tax.totalTax,
+      total: lineTotal,
     }
   })
 
