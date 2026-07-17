@@ -17,16 +17,20 @@ const STATE_CODE_MAP = {
 
 const GST_RATE = 18; // flat rate across all HKAY products
 
-export function calculateLineItemTax({ taxableValue, buyerStateCode }) {
+// Price shown to the customer is GST-INCLUSIVE (what they actually pay).
+// We back-calculate the taxable value and tax split from that final price,
+// rather than adding tax on top of it.
+export function calculateLineItemTax({ inclusivePrice, buyerStateCode }) {
   const isIntraState = buyerStateCode === SELLER_STATE_CODE;
-  const totalTax = (taxableValue * GST_RATE) / 100;
+  const taxableValue = round2(inclusivePrice / (1 + GST_RATE / 100));
+  const totalTax = round2(inclusivePrice - taxableValue);
 
   if (isIntraState) {
-    const half = totalTax / 2;
-    return { cgst: round2(half), sgst: round2(half), igst: 0, totalTax: round2(totalTax) };
+    const half = round2(totalTax / 2);
+    return { taxableValue, cgst: half, sgst: half, igst: 0, totalTax };
   }
 
-  return { cgst: 0, sgst: 0, igst: round2(totalTax), totalTax: round2(totalTax) };
+  return { taxableValue, cgst: 0, sgst: 0, igst: totalTax, totalTax };
 }
 
 function round2(n) {

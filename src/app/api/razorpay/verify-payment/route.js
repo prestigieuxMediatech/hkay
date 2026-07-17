@@ -75,14 +75,18 @@ export async function POST(request) {
       )
     }
 
-    // 2. Idempotency check — prevent duplicate orders from retries
+    // 2. Idempotency check — but only short-circuit if a COMPLETE order
+    // already exists. The Razorpay webhook may have already created a
+    // minimal "fallback" stub (empty items) for this payment_id if it fired
+    // before this request completed — that stub is NOT a real duplicate,
+    // it's missing data we need to fill in below.
     const { data: existingOrder } = await supabase
       .from('orders')
       .select('*')
       .eq('razorpay_payment_id', razorpay_payment_id)
       .maybeSingle()
 
-    if (existingOrder) {
+    if (existingOrder && Array.isArray(existingOrder.items) && existingOrder.items.length > 0) {
       return Response.json(existingOrder)
     }
 
@@ -91,42 +95,67 @@ export async function POST(request) {
     const razorpayOrder = await razorpay.orders.fetch(razorpay_order_id)
     const verifiedTotal = razorpayOrder.amount / 100 // paise -> rupees
 
-    // 4. Generate a clean, sequential order number
-    const orderNo = await generateOrderNumber()
+    // 4. Reuse order_no if a stub already has one, otherwise generate fresh
+    const orderNo = existingOrder?.order_no || await generateOrderNumber()
 
-    // 5. Insert order using server-verified amount, not client-sent total
-    const { data, error } = await supabase
-      .from('orders')
-      .insert({
-        user_id: userId,
-        order_no: orderNo,
-        items,
-        shipping_address: {
-          ...shippingAddress,
-          email,
-        },
-        subtotal: verifiedTotal,
-        shipping_fee: 0,
-        total: verifiedTotal,
-        status: 'paid',
-        razorpay_order_id,
-        razorpay_payment_id,
-      })
-      .select()
-      .single()
+    // 5. Either fill in the webhook's incomplete stub, or insert a new order
+    let data, error
+
+    if (existingOrder) {
+      const result = await supabase
+        .from('orders')
+        .update({
+          user_id: userId,
+          order_no: orderNo,
+          items,
+          shipping_address: {
+            ...shippingAddress,
+            email,
+          },
+          subtotal: verifiedTotal,
+          shipping_fee: 0,
+          total: verifiedTotal,
+          status: 'paid',
+        })
+        .eq('id', existingOrder.id)
+        .select()
+        .single()
+      data = result.data
+      error = result.error
+    } else {
+      const result = await supabase
+        .from('orders')
+        .insert({
+          user_id: userId,
+          order_no: orderNo,
+          items,
+          shipping_address: {
+            ...shippingAddress,
+            email,
+          },
+          subtotal: verifiedTotal,
+          shipping_fee: 0,
+          total: verifiedTotal,
+          status: 'paid',
+          razorpay_order_id,
+          razorpay_payment_id,
+        })
+        .select()
+        .single()
+      data = result.data
+      error = result.error
+    }
 
     if (error) {
       throw error
     }
 
     // 6. Generate invoice — wrapped separately so a PDF/HSN failure never
-    // breaks the payment confirmation response. The order is already paid
-    // and saved; invoice generation can be retried by admin if it fails.
+    // breaks the payment confirmation response.
     try {
       await generateInvoiceForOrder(data.id)
     } catch (invoiceError) {
       console.error(`Invoice generation failed for order ${data.id}:`, invoiceError)
-      // order still returns successfully to the customer — payment succeeded
     }
 
     return Response.json(data)
