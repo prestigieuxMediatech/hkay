@@ -6,14 +6,22 @@ import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
 
+function getVariantLabel(item) {
+  return item.product_variants?.variant_label || item.variant_label || null
+}
+
+function getItemPrice(item) {
+  const variantPrice = item.product_variants?.price ?? item.variant_price
+  return variantPrice ?? item.products?.price ?? 0
+}
+
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity } = useCart()
   const { isSignedIn, isLoaded } = useUser()
   const router = useRouter()
-  
+
   const total = cartItems.reduce((sum, item) => {
-    const price = item.products?.price || 0
-    return sum + price * item.quantity
+    return sum + getItemPrice(item) * item.quantity
   }, 0)
 
   function handleCheckoutClick() {
@@ -25,7 +33,6 @@ export default function CartPage() {
     router.push('/checkout')
   }
 
-  // empty cart state
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
@@ -48,7 +55,6 @@ export default function CartPage() {
   return (
   <div className="min-h-screen bg-stone-50 pb-16">
 
-    {/* Dark banner at top — same as product page */}
     <div className="bg-stone-900 h-[200px] sm:h-[220px] 
       flex items-end px-6 pb-8 md:px-10 lg:px-20">
       <div className="mt-16">
@@ -65,112 +71,108 @@ export default function CartPage() {
       </div>
     </div>
 
-    {/* Cart content */}
     <div className="max-w-6xl mx-auto px-4 sm:px-6 
       lg:px-8 py-10">
 
-      {/* rest of your existing cart content below */}
       <div className="flex flex-col lg:flex-row gap-6 items-start">
 
-        {/* LEFT — Cart items */}
         <div className="w-full lg:flex-1 flex flex-col gap-3">
-          {cartItems.map((item) => (
-            <div
-              key={item.id || item.product_id}
-              className="bg-white border border-stone-200
-                rounded-2xl p-4 sm:p-5"
-            >
-              <div className="flex gap-4">
-                <div className="w-20 h-20 sm:w-24 sm:h-24
-                  rounded-xl overflow-hidden bg-stone-100
-                  flex-shrink-0">
-                  {item.products?.images?.[0] ? (
-                    <img
-                      src={item.products.images[0]}
-                      alt={item.products.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-stone-200" />
-                  )}
-                </div>
+          {cartItems.map((item) => {
+            const variantLabel = getVariantLabel(item)
+            const itemPrice = getItemPrice(item)
 
-                <div className="flex-1 min-w-0 flex flex-col
-                  justify-between">
-                  <div className="flex items-start
-                    justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-medium text-stone-900
-                        text-sm sm:text-base leading-snug
-                        line-clamp-2">
-                        {item.products?.name}
-                      </p>
-                      <p className="text-sm text-stone-500 mt-1">
-                        ₹{item.products?.price?.toLocaleString('en-IN')}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() =>
-                        removeFromCart(item.id || item.product_id)
-                      }
-                      className="text-stone-300 hover:text-red-500
-                        transition flex-shrink-0 p-1"
-                      aria-label="Remove item"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+            return (
+              <div
+                key={item.id || `${item.product_id}-${item.variant_id || 'novariant'}`}
+                className="bg-white border border-stone-200
+                  rounded-2xl p-4 sm:p-5"
+              >
+                <div className="flex gap-4">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24
+                    rounded-xl overflow-hidden bg-stone-100
+                    flex-shrink-0">
+                    {item.products?.images?.[0] ? (
+                      <img
+                        src={item.products.images[0]}
+                        alt={item.products.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-stone-200" />
+                    )}
                   </div>
 
-                  <div className="flex items-center
-                    justify-between mt-3">
-                    <div className="flex items-center gap-2">
+                  <div className="flex-1 min-w-0 flex flex-col
+                    justify-between">
+                    <div className="flex items-start
+                      justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-medium text-stone-900
+                          text-sm sm:text-base leading-snug
+                          line-clamp-2">
+                          {item.products?.name}
+                        </p>
+                        {variantLabel && (
+                          <p className="text-xs text-stone-400 mt-0.5">
+                            Size: {variantLabel}
+                          </p>
+                        )}
+                        <p className="text-sm text-stone-500 mt-1">
+                          ₹{itemPrice.toLocaleString('en-IN')}
+                        </p>
+                      </div>
                       <button
-                        onClick={() =>
-                        updateQuantity(
-                          item.id || item.product_id,
-                          Math.max(1, item.quantity - 1)
-                        )
-                        }
-                        className="w-7 h-7 rounded-lg border
-                          border-stone-200 flex items-center
-                          justify-center text-stone-600
-                          hover:bg-stone-50 transition"
+                        onClick={() => removeFromCart(item)}
+                        className="text-stone-300 hover:text-red-500
+                          transition flex-shrink-0 p-1"
+                        aria-label="Remove item"
                       >
-                        <Minus size={13} />
-                      </button>
-                      <span className="text-sm font-medium
-                        w-6 text-center text-stone-900">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() =>
-                        updateQuantity(
-                          item.id || item.product_id,
-                          item.quantity + 1
-                        )
-                        }
-                        className="w-7 h-7 rounded-lg border
-                          border-stone-200 flex items-center
-                          justify-center text-stone-600
-                          hover:bg-stone-50 transition"
-                      >
-                        <Plus size={13} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
-                    <p className="text-sm font-semibold
-                      text-stone-900">
-                      ₹{(
-                        (item.products?.price || 0) * item.quantity
-                      ).toLocaleString('en-IN')}
-                    </p>
+
+                    <div className="flex items-center
+                      justify-between mt-3">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() =>
+                            updateQuantity(item, Math.max(1, item.quantity - 1))
+                          }
+                          className="w-7 h-7 rounded-lg border
+                            border-stone-200 flex items-center
+                            justify-center text-stone-600
+                            hover:bg-stone-50 transition"
+                        >
+                          <Minus size={13} />
+                        </button>
+                        <span className="text-sm font-medium
+                          w-6 text-center text-stone-900">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() =>
+                            updateQuantity(item, item.quantity + 1)
+                          }
+                          className="w-7 h-7 rounded-lg border
+                            border-stone-200 flex items-center
+                            justify-center text-stone-600
+                            hover:bg-stone-50 transition"
+                        >
+                          <Plus size={13} />
+                        </button>
+                      </div>
+                      <p className="text-sm font-semibold
+                        text-stone-900">
+                        ₹{(itemPrice * item.quantity).toLocaleString('en-IN')}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
-        {/* RIGHT — Order summary */}
         <div className="w-full lg:w-80 xl:w-96 lg:sticky lg:top-28">
           <div className="bg-white border border-stone-200
             rounded-2xl p-5 sm:p-6">
@@ -228,18 +230,6 @@ export default function CartPage() {
               Continue Shopping
             </Link>
 
-            <div className="mt-5 pt-5 border-t border-stone-100
-              flex flex-col gap-2">
-              <p className="text-xs text-stone-400 text-center">
-                🔒 Secure checkout
-              </p>
-              <p className="text-xs text-stone-400 text-center">
-                🚚 Free shipping across India
-              </p>
-              <p className="text-xs text-stone-400 text-center">
-                ↩️ Easy 7-day returns
-              </p>
-            </div>
           </div>
         </div>
 

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, ImagePlus, Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import ProductVariantsManager from "@/app/(site)/components/admin/ProductVariantsManager";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -542,6 +543,12 @@ export default function ProductForm({
                 </label>
               </div>
             </div>
+
+            {product?.id ? (
+              <div>
+                <ProductVariantsManager productId={product.id} />
+              </div>
+            ) : null}
 
             <div>
               <label className="mb-1 block text-sm font-medium text-stone-700">

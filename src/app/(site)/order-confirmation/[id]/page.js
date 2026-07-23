@@ -65,6 +65,15 @@ export default function OrderConfirmationPage({ params }) {
     // this will be replaced by payment webhook later
     localStorage.removeItem('hkay_cart')
 
+    async function clearServerCart() {
+      try {
+        await fetch(`/api/cart/clear`, { method: 'DELETE' })
+      } catch (err) {
+        console.error('Failed to clear server cart:', err)
+      }
+    }
+    clearServerCart()
+
     return () => {
       isActive = false
     }

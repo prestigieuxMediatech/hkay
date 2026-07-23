@@ -1,6 +1,6 @@
 // src/app/(site)/shop/[slug]/page.js
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase-client"
@@ -14,12 +14,15 @@ export default function ProductPage({ params }) {
 
   const [product, setProduct] = useState(null)
   const [mainImage, setMainImage] = useState(null)
+  const [variants, setVariants] = useState([])
+  const [selectedVariantId, setSelectedVariantId] = useState(null)
+  const [variantError, setVariantError] = useState("")
 
   useEffect(() => {
     async function fetchProduct() {
       const { data, error } = await supabase
         .from("products")
-        .select("id,name,slug,description,price,original_price,images,is_best_seller,is_new_arrival")
+        .select("id,name,slug,description,price,original_price,images,is_best_seller,is_new_arrival,has_variants")
         .eq("slug", slug)
         .single()
 
@@ -27,10 +30,43 @@ export default function ProductPage({ params }) {
 
       setProduct(data)
       setMainImage(data.images?.[0] || null)
+
+      if (data.has_variants) {
+        const { data: variantData, error: variantErr } = await supabase
+          .from("product_variants")
+          .select("id,variant_label,variant_type,price")
+          .eq("product_id", data.id)
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true })
+
+        if (!variantErr) {
+          setVariants(variantData || [])
+        }
+      }
     }
 
     fetchProduct()
   }, [slug])
+
+  const selectedVariant = useMemo(
+    () => variants.find((v) => v.id === selectedVariantId) || null,
+    [variants, selectedVariantId]
+  )
+
+  const straightSizes = variants.filter((v) => v.variant_type === "straight")
+  const taperedSizes = variants.filter((v) => v.variant_type === "tapered")
+
+  const displayPrice = selectedVariant?.price ?? product?.price
+  const requiresVariant = product?.has_variants && variants.length > 0
+
+  function handleAddToCartClick(event) {
+    if (requiresVariant && !selectedVariantId) {
+      event.preventDefault()
+      setVariantError("Please select a size")
+      return false
+    }
+    setVariantError("")
+  }
 
   if (!product) return (
     <div className="flex h-screen items-center justify-center text-gray-400">
@@ -105,7 +141,7 @@ export default function ProductPage({ params }) {
             {/* Price */}
             <div className="flex items-center gap-4">
               <p className="text-3xl font-bold text-black">
-                ₹{product.price.toLocaleString("en-IN")}
+                ₹{displayPrice.toLocaleString("en-IN")}
               </p>
               {product.original_price && (
                 <p className="text-lg text-stone-400 line-through">
@@ -114,12 +150,75 @@ export default function ProductPage({ params }) {
               )}
               {product.original_price && (
                 <span className="text-sm text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full">
-                  {Math.round((1 - product.price / product.original_price) * 100)}% off
+                  {Math.round((1 - displayPrice / product.original_price) * 100)}% off
                 </span>
               )}
             </div>
 
             <hr className="border-stone-200" />
+
+            {/* Size Variants */}
+            {requiresVariant && (
+              <div>
+                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  Select Size
+                </p>
+
+                {straightSizes.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs text-stone-400 mb-2">Straight</p>
+                    <div className="flex flex-wrap gap-2">
+                      {straightSizes.map((v) => (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedVariantId(v.id)
+                            setVariantError("")
+                          }}
+                          className={`rounded-lg border px-4 py-2 text-sm transition-all
+                            ${selectedVariantId === v.id
+                              ? "border-black bg-black text-white"
+                              : "border-stone-200 text-stone-700 hover:border-stone-400"}`}
+                        >
+                          {v.variant_label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {taperedSizes.length > 0 && (
+                  <div>
+                    <p className="text-xs text-stone-400 mb-2">Tapered</p>
+                    <div className="flex flex-wrap gap-2">
+                      {taperedSizes.map((v) => (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedVariantId(v.id)
+                            setVariantError("")
+                          }}
+                          className={`rounded-lg border px-4 py-2 text-sm transition-all
+                            ${selectedVariantId === v.id
+                              ? "border-black bg-black text-white"
+                              : "border-stone-200 text-stone-700 hover:border-stone-400"}`}
+                        >
+                          {v.variant_label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {variantError && (
+                  <p className="mt-2 text-xs text-rose-600">{variantError}</p>
+                )}
+              </div>
+            )}
+
+            {requiresVariant && <hr className="border-stone-200" />}
 
             {/* Description */}
             {product.description && (
@@ -133,8 +232,12 @@ export default function ProductPage({ params }) {
               </div>
             )}
 
-            <AddToCartButton product={product} className="w-full py-6 text-base rounded-xl bg-black text-white hover:bg-gray-800 cursor-pointer mt-2" />
-            
+            <AddToCartButton
+              product={product}
+              variant={selectedVariant}
+              onClick={handleAddToCartClick}
+              className="w-full py-6 text-base rounded-xl bg-black text-white hover:bg-gray-800 cursor-pointer mt-2"
+            />
 
           </div>
         </div>

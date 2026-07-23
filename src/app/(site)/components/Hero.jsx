@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AOS from "aos";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -102,21 +103,23 @@ export default function Hero() {
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-5">
                   <Button
+                    asChild
                     className="cursor-pointer bg-black px-8 py-5 text-base text-white transition-all duration-300 hover:scale-105 hover:bg-white hover:text-black sm:px-10 sm:py-6 sm:text-lg"
                     data-aos="fade-right"
                     data-aos-delay="700"
                     data-aos-once="false"
                   >
-                    Shop Now
+                    <Link href="/shop">Shop Now</Link>
                   </Button>
 
                   <Button
+                    asChild
                     className="cursor-pointer bg-white px-8 py-5 text-base text-black transition-all duration-300 hover:scale-105 hover:bg-black hover:text-white sm:px-10 sm:py-6 sm:text-lg"
                     data-aos="fade-left"
                     data-aos-delay="700"
                     data-aos-once="false"
                   >
-                    Contact Us
+                    <Link href="/contact">Contact Us</Link>
                   </Button>
                 </div>
               </div>

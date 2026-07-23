@@ -1,139 +1,187 @@
-"use client"
+"use client";
 
-import { ChevronLeft, ChevronRight, Search } from "lucide-react"
-import { useState } from "react"
+import Link from "next/link";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
-const brandBrown = "#3b1f0f"
+const brandBrown = "#3b1f0f";
 
-const categories = [
-  "All",
-  "Care & Craft",
-  "Leather Guides",
-  "Style & Wear",
-  "Behind Us",
-  "Gift Ideas",
-]
+function formatDate(value) {
+  if (!value) return "Recently";
 
-const featuredPost = {
-  category: "Care & Craft",
-  title: "How full-grain leather ages beautifully over time",
-  excerpt:
-    "Full-grain leather doesn't just wear — it tells your story. Here's what changes over years of use and why it only gets better.",
-  readTime: "5 min read",
-  date: "June 2026",
+  return new Date(value).toLocaleDateString("en-IN", {
+    month: "short",
+    year: "numeric",
+  });
 }
 
-const posts = [
-  {
-    category: "Care & Craft",
-    title: "How to clean your leather wallet properly",
-    readTime: "4 min read",
-    date: "May 2026",
-  },
-  {
-    category: "Leather Guides",
-    title: "Full-grain vs top-grain: what's the real difference?",
-    readTime: "6 min read",
-    date: "May 2026",
-  },
-  {
-    category: "Style & Wear",
-    title: "5 ways to style a leather tote bag for work",
-    readTime: "5 min read",
-    date: "Apr 2026",
-  },
-  {
-    category: "Behind Us",
-    title: "A day in our workshop: how a bag is born",
-    readTime: "7 min read",
-    date: "Apr 2026",
-  },
-  {
-    category: "Gift Ideas",
-    title: "Best leather gifts for men under ₹2,000",
-    readTime: "4 min read",
-    date: "Mar 2026",
-  },
-  {
-    category: "Care & Craft",
-    title: "How to condition leather the right way",
-    readTime: "3 min read",
-    date: "Mar 2026",
-  },
-]
+function estimateReadTime(post) {
+  const text = `${post?.excerpt || ""} ${post?.content || ""}`.trim();
 
-const popularPosts = [
-  "How to clean your leather wallet properly",
-  "Full-grain vs top-grain: what's the real difference?",
-  "5 ways to style a leather tote bag for work",
-  "Best leather gifts for men under ₹2,000",
-]
+  if (!text) {
+    return "3 min read";
+  }
 
-const categoryCounts = [
-  { name: "Care & Craft", count: 8 },
-  { name: "Leather Guides", count: 6 },
-  { name: "Style & Wear", count: 5 },
-  { name: "Behind Us", count: 4 },
-  { name: "Gift Ideas", count: 3 },
-]
+  const words = text.split(/\s+/).filter(Boolean).length;
+  const minutes = Math.max(3, Math.ceil(words / 200));
 
-const tags = ["leather", "care", "bags", "wallets", "gifts", "style", "craft"]
+  return `${minutes} min read`;
+}
 
-function BlogComp() {
-  const [activeCategory, setActiveCategory] = useState("All")
+export default function BlogComp({ blogPosts = [] }) {
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const categories = useMemo(() => {
+    const uniqueCategories = Array.from(
+      new Set(
+        blogPosts
+          .map((post) => post.category?.trim())
+          .filter(Boolean)
+      )
+    );
+
+    return ["All", ...uniqueCategories];
+  }, [blogPosts]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = blogPosts.reduce((accumulator, post) => {
+      const category = post.category?.trim() || "Uncategorized";
+      accumulator.set(category, (accumulator.get(category) || 0) + 1);
+      return accumulator;
+    }, new Map());
+
+    return Array.from(counts.entries()).map(([name, count]) => ({
+      name,
+      count,
+    }));
+  }, [blogPosts]);
+
+  const filteredPosts = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return blogPosts.filter((post) => {
+      const category = post.category?.trim() || "Uncategorized";
+      const matchesCategory =
+        activeCategory === "All" || category === activeCategory;
+      const matchesQuery =
+        !query ||
+        [post.title, post.excerpt, post.content, post.category, post.slug]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(query));
+
+      return matchesCategory && matchesQuery;
+    });
+  }, [activeCategory, blogPosts, searchQuery]);
+
+  const featuredPost = filteredPosts[0] || null;
+  const listPosts = filteredPosts.slice(1);
+  const postsPerPage = 6;
+  const totalPages = Math.max(1, Math.ceil(listPosts.length / postsPerPage));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedPosts = listPosts.slice(
+    (safePage - 1) * postsPerPage,
+    safePage * postsPerPage
+  );
+  const popularPosts = listPosts.slice(0, 4);
+  const tags = categories
+    .filter((category) => category !== "All")
+    .slice(0, 7)
+    .map((category) => category.toLowerCase());
+
+  function updateCategory(category) {
+    setActiveCategory(category);
+    setCurrentPage(1);
+  }
+
+  function updateSearch(value) {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  }
 
   return (
     <div className="bg-gradient-to-b from-stone-50 to-white">
       <section className="mx-auto max-w-7xl px-6 py-12 md:px-10 md:py-16 lg:px-20">
         <div className="space-y-16">
-          <section className="rounded-3xl border border-stone-200 bg-white p-4 shadow-[0_18px_40px_rgba(59,31,15,0.06)] sm:p-6 lg:p-8">
-            <div className="grid gap-8 lg:grid-cols-[3fr_2fr] lg:items-center">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-neutral-200">
-                <div className="absolute inset-0 bg-gradient-to-br from-stone-300/40 via-transparent to-stone-500/20" />
-              </div>
-
-              <div className="space-y-5">
-                <span
-                  className="inline-flex rounded-full px-3 py-1 text-xs font-medium text-white shadow-sm"
-                  style={{ backgroundColor: brandBrown }}
+          {featuredPost ? (
+            <section className="rounded-3xl border border-stone-200 bg-white p-4 shadow-[0_18px_40px_rgba(59,31,15,0.06)] sm:p-6 lg:p-8">
+              <div className="grid gap-8 lg:grid-cols-[3fr_2fr] lg:items-center">
+                <Link
+                  href={`/blog/${featuredPost.slug}`}
+                  className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-neutral-200"
                 >
-                  {featuredPost.category}
-                </span>
+                  {featuredPost.cover_image ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={featuredPost.cover_image}
+                        alt={featuredPost.title}
+                        className="h-full w-full object-cover transition duration-500"
+                      />
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-stone-300/40 via-transparent to-stone-500/20" />
+                  )}
+                </Link>
 
-                <h2 className="max-w-xl font-serif text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-[2.65rem]">
-                  {featuredPost.title}
-                </h2>
+                <div className="space-y-5">
+                  <span
+                    className="inline-flex rounded-full px-3 py-1 text-xs font-medium text-white shadow-sm"
+                    style={{ backgroundColor: brandBrown }}
+                  >
+                    {featuredPost.category || "Uncategorized"}
+                  </span>
 
-                <p className="max-w-xl text-sm leading-7 text-stone-600 sm:text-base">
-                  {featuredPost.excerpt}
-                </p>
+                  <h2 className="max-w-xl font-serif text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl lg:text-[2.65rem]">
+                    {featuredPost.title}
+                  </h2>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-stone-500">
-                  <span>{featuredPost.readTime}</span>
-                  <span className="h-1 w-1 rounded-full bg-stone-300" />
-                  <span>{featuredPost.date}</span>
+                  <p className="max-w-xl text-sm leading-7 text-stone-600 sm:text-base">
+                    {featuredPost.excerpt ||
+                      "Open the post to read the full story from the workshop."}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-stone-500">
+                    <span>{estimateReadTime(featuredPost)}</span>
+                    <span className="h-1 w-1 rounded-full bg-stone-300" />
+                    <span>
+                      {formatDate(
+                        featuredPost.published_at || featuredPost.created_at
+                      )}
+                    </span>
+                  </div>
+
+                  <Link
+                    href={`/blog/${featuredPost.slug}`}
+                    className="inline-flex text-sm font-medium text-stone-900 underline decoration-stone-400 underline-offset-4 transition hover:text-[#3b1f0f] hover:decoration-[#3b1f0f]"
+                  >
+                    Read article
+                  </Link>
                 </div>
-
-                <a
-                  href="#"
-                  className="inline-flex text-sm font-medium text-stone-900 underline decoration-stone-400 underline-offset-4 transition hover:text-[#3b1f0f] hover:decoration-[#3b1f0f]"
-                >
-                  Read article →
-                </a>
               </div>
-            </div>
-          </section>
+            </section>
+          ) : (
+            <section className="rounded-3xl border border-dashed border-stone-200 bg-white p-10 text-center shadow-sm">
+              <p className="text-lg font-medium text-stone-800">
+                No published blog posts yet.
+              </p>
+              <p className="mt-2 text-sm text-stone-500">
+                Once an admin publishes a post, it will appear here automatically.
+              </p>
+            </section>
+          )}
 
           <section className="rounded-3xl border border-stone-200 bg-white px-4 py-4 shadow-sm sm:px-5">
             <div className="flex gap-3 overflow-x-auto pb-1">
               {categories.map((category) => {
-                const isActive = activeCategory === category
+                const isActive = activeCategory === category;
 
                 return (
                   <button
                     key={category}
                     type="button"
-                    onClick={() => setActiveCategory(category)}
+                    onClick={() => updateCategory(category)}
                     className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm transition ${
                       isActive
                         ? "border-transparent text-white shadow-sm"
@@ -143,39 +191,60 @@ function BlogComp() {
                   >
                     {category}
                   </button>
-                )
+                );
               })}
             </div>
           </section>
 
           <section className="grid gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(300px,3fr)]">
             <div className="space-y-8">
-              <div className="grid gap-6 md:grid-cols-2">
-                {posts.map((post) => (
-                  <article
-                    key={post.title}
-                    className="group overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-                  >
-                    <div className="relative aspect-video w-full overflow-hidden bg-neutral-200">
-                      <div className="absolute inset-0 bg-gradient-to-br from-stone-300/30 via-transparent to-stone-500/10 transition duration-300 group-hover:scale-105" />
-                    </div>
+              {listPosts.length ? (
+                <div className="grid gap-6 md:grid-cols-2">
+                  {pagedPosts.map((post) => (
+                    <Link
+                      href={`/blog/${post.slug}`}
+                      key={post.id}
+                      className="group block overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+                    >
+                      <div className="relative aspect-video w-full overflow-hidden bg-neutral-200">
+                        {post.cover_image ? (
+                          <>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={post.cover_image}
+                              alt={post.title}
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                            />
+                          </>
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-stone-300/30 via-transparent to-stone-500/10" />
+                        )}
+                      </div>
 
-                    <div className="space-y-3 p-5">
-                      <span className="inline-flex rounded-full bg-[#f5e8dd] px-3 py-1 text-xs font-medium text-[#3b1f0f]">
-                        {post.category}
-                      </span>
+                      <div className="space-y-3 p-5">
+                        <span className="inline-flex rounded-full bg-[#f5e8dd] px-3 py-1 text-xs font-medium text-[#3b1f0f]">
+                          {post.category || "Uncategorized"}
+                        </span>
 
-                      <h3 className="line-clamp-2 text-base font-semibold leading-6 text-stone-900">
-                        {post.title}
-                      </h3>
+                        <h3 className="line-clamp-2 text-base font-semibold leading-6 text-stone-900">
+                          {post.title}
+                        </h3>
 
-                      <p className="text-xs text-stone-500">
-                        {post.readTime} · {post.date}
-                      </p>
-                    </div>
-                  </article>
-                ))}
-              </div>
+                        <p className="text-xs text-stone-500">
+                          {estimateReadTime(post)} |{" "}
+                          {formatDate(post.published_at || post.created_at)}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-stone-200 bg-white p-8 text-center text-sm text-stone-500">
+                  {featuredPost
+                    ? "No additional posts match the selected filter."
+                    : "No posts match the selected filter."}
+                </div>
+              )}
             </div>
 
             <aside className="space-y-5">
@@ -185,6 +254,8 @@ function BlogComp() {
                   <input
                     type="text"
                     placeholder="Search articles..."
+                    value={searchQuery}
+                    onChange={(event) => updateSearch(event.target.value)}
                     className="w-full rounded-lg border border-stone-300 bg-white py-3 pl-10 pr-4 text-sm text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-[#3b1f0f]"
                   />
                 </div>
@@ -195,16 +266,25 @@ function BlogComp() {
                   Popular Posts
                 </h3>
                 <ol className="mt-4 space-y-3">
-                  {popularPosts.map((title, index) => (
-                    <li key={title} className="flex gap-3 text-sm text-stone-700">
-                      <span className="mt-0.5 text-xs font-medium text-stone-400">
-                        {index + 1}.
-                      </span>
-                      <a href="#" className="transition hover:underline">
-                        {title}
-                      </a>
+                  {popularPosts.length ? (
+                    popularPosts.map((post, index) => (
+                      <li key={post.id} className="flex gap-3 text-sm text-stone-700">
+                        <span className="mt-0.5 text-xs font-medium text-stone-400">
+                          {index + 1}.
+                        </span>
+                        <Link
+                          href={`/blog/${post.slug}`}
+                          className="transition hover:underline"
+                        >
+                          {post.title}
+                        </Link>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-sm text-stone-500">
+                      More posts will appear here once the list grows.
                     </li>
-                  ))}
+                  )}
                 </ol>
               </div>
 
@@ -213,32 +293,53 @@ function BlogComp() {
                   Categories
                 </h3>
                 <ul className="mt-4 space-y-2 text-sm text-stone-700">
-                  {categoryCounts.map((item) => (
-                    <li key={item.name}>
-                      <a href="#" className="transition hover:underline">
-                        {item.name} ({item.count})
-                      </a>
-                    </li>
-                  ))}
+                  {categoryCounts.length ? (
+                    categoryCounts.map((item) => (
+                      <li key={item.name}>
+                        <button
+                          type="button"
+                          onClick={() => updateCategory(item.name)}
+                          className="transition hover:underline"
+                        >
+                          {item.name} ({item.count})
+                        </button>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-stone-500">No categories yet.</li>
+                  )}
                 </ul>
               </div>
 
               <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
                 <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
-                  <div className="h-28 w-full bg-neutral-200" />
+                  <div className="h-28 w-full bg-neutral-200">
+                    {featuredPost?.cover_image ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={featuredPost.cover_image}
+                          alt={featuredPost.title}
+                          className="h-full w-full object-cover"
+                        />
+                      </>
+                    ) : null}
+                  </div>
                   <div className="space-y-3 p-4">
                     <div>
                       <p className="text-sm font-semibold text-stone-900">
-                        Slim Wallet
+                        Latest published post
                       </p>
-                      <p className="text-sm text-stone-500">₹1,100</p>
+                      <p className="text-sm text-stone-500">
+                        {featuredPost?.category || "HKAY Journal"}
+                      </p>
                     </div>
-                    <a
-                      href="#"
+                    <Link
+                      href="/shop"
                       className="inline-flex text-sm font-medium text-stone-900 underline decoration-stone-400 underline-offset-4 transition hover:text-[#3b1f0f] hover:decoration-[#3b1f0f]"
                     >
-                      Browse collection →
-                    </a>
+                      Browse collection
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -248,14 +349,20 @@ function BlogComp() {
                   Tags
                 </h3>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full border border-stone-300 px-3 py-1 text-xs text-stone-700"
-                    >
-                      {tag}
+                  {tags.length ? (
+                    tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full border border-stone-300 px-3 py-1 text-xs text-stone-700"
+                      >
+                        {tag}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-sm text-stone-500">
+                      Tags will appear once posts are published.
                     </span>
-                  ))}
+                  )}
                 </div>
               </div>
             </aside>
@@ -264,27 +371,34 @@ function BlogComp() {
           <section className="flex items-center justify-center gap-2">
             <button
               type="button"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-stone-300 text-stone-600 transition hover:bg-stone-50"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={safePage <= 1}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-stone-300 text-stone-600 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            {[1, 2, 3].map((page) => (
+
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
               <button
                 key={page}
                 type="button"
+                onClick={() => setCurrentPage(page)}
                 className={`min-w-10 rounded-md border px-4 py-2 text-sm transition ${
-                  page === 1
+                  page === safePage
                     ? "border-transparent text-white shadow-sm"
                     : "border-stone-300 text-stone-700 hover:bg-stone-50"
                 }`}
-                style={page === 1 ? { backgroundColor: brandBrown } : undefined}
+                style={page === safePage ? { backgroundColor: brandBrown } : undefined}
               >
                 {page}
               </button>
             ))}
+
             <button
               type="button"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-stone-300 text-stone-600 transition hover:bg-stone-50"
+              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              disabled={safePage >= totalPages}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-stone-300 text-stone-600 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -292,34 +406,6 @@ function BlogComp() {
         </div>
       </section>
 
-      <section className="border-y border-stone-200 bg-stone-100">
-        <div className="mx-auto max-w-7xl px-6 py-16 text-center md:px-10 lg:px-20">
-          <div className="mx-auto max-w-2xl space-y-4">
-            <h2 className="text-2xl font-semibold tracking-tight text-stone-900 sm:text-3xl">
-              Get leather care tips & new posts in your inbox
-            </h2>
-            <p className="text-sm text-stone-600 sm:text-base">
-              No spam. Just craft, care, and stories from the workshop.
-            </p>
-
-            <form className="mx-auto flex max-w-xl flex-col gap-3 sm:flex-row sm:gap-0">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="w-full rounded-lg border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 outline-none placeholder:text-stone-400 focus:border-[#3b1f0f] sm:flex-1 sm:rounded-l-lg sm:rounded-r-none"
-              />
-              <button
-                type="submit"
-                className="rounded-lg bg-[#3b1f0f] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#4a2a16] sm:rounded-l-none sm:rounded-r-lg"
-              >
-                Subscribe
-              </button>
-            </form>
-          </div>
-        </div>
-      </section>
     </div>
-  )
+  );
 }
-
-export default BlogComp

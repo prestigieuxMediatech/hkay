@@ -18,8 +18,9 @@ export async function POST(request) {
       return Response.json({ error: 'Cart is empty' }, { status: 400 })
     }
 
-    // Recalculate total server-side from real product prices — never trust client amount
+    // Recalculate total server-side from real product/variant prices — never trust client amount
     const productIds = items.map(item => item.product_id)
+    const variantIds = items.map(item => item.variant_id).filter(Boolean)
 
     const { data: products, error: productError } = await supabase
       .from('products')
@@ -30,19 +31,53 @@ export async function POST(request) {
 
     const priceMap = new Map(products.map(p => [p.id, p.price]))
 
+    let variantPriceMap = new Map()
+    if (variantIds.length > 0) {
+      const { data: variants, error: variantError } = await supabase
+        .from('product_variants')
+        .select('id, price, is_active')
+        .in('id', variantIds)
+
+      if (variantError) throw variantError
+
+      for (const v of variants) {
+        if (!v.is_active) {
+          return Response.json(
+            { error: 'One of the selected sizes is no longer available' },
+            { status: 400 }
+          )
+        }
+        variantPriceMap.set(v.id, v.price)
+      }
+    }
+
     let subtotal = 0
     for (const item of items) {
-      const realPrice = priceMap.get(item.product_id)
-      if (realPrice == null) {
+      const basePrice = priceMap.get(item.product_id)
+      if (basePrice == null) {
         return Response.json(
           { error: `Invalid product in cart: ${item.product_id}` },
           { status: 400 }
         )
       }
-      subtotal += realPrice * item.quantity
+
+      // Variant price overrides base price when set; null means "inherit base price"
+      let effectivePrice = basePrice
+      if (item.variant_id) {
+        if (!variantPriceMap.has(item.variant_id)) {
+          return Response.json(
+            { error: `Invalid size selected for product: ${item.product_id}` },
+            { status: 400 }
+          )
+        }
+        const variantPrice = variantPriceMap.get(item.variant_id)
+        effectivePrice = variantPrice != null ? variantPrice : basePrice
+      }
+
+      subtotal += effectivePrice * item.quantity
     }
 
-    const shippingFee = 0 // match your existing free-shipping logic
+    const shippingFee = 0
     const total = subtotal + shippingFee
 
     if (total < 1) {
@@ -80,7 +115,7 @@ export async function POST(request) {
       id: order.id,
       amount: order.amount,
       currency: order.currency,
-      total, // send back so frontend can display it, but this is now server-verified
+      total,
     })
   } catch (error) {
     return Response.json(

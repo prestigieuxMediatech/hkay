@@ -19,13 +19,20 @@ export async function GET(request){
                 id,
                 quantity,
                 product_id,
+                variant_id,
                 products(
                     id,
                     name,
                     images,
                     price,
                     original_price,
-                    slug    
+                    slug
+                ),
+                product_variants(
+                    id,
+                    variant_label,
+                    variant_type,
+                    price
                 )
             `)
             .eq('user_id',userId)
@@ -44,7 +51,7 @@ export async function GET(request){
 
 export async function POST(request){
     try{
-        const { userId,productId,quantity=1} = await request.json();
+        const { userId, productId, variantId = null, quantity = 1 } = await request.json();
 
         if(!userId || !productId){
             return NextResponse.json(
@@ -53,14 +60,38 @@ export async function POST(request){
             )
         }
 
-        const { data, error } = await supabase
+        // Manual upsert instead of .upsert()/onConflict — Postgres treats NULL
+        // as distinct from NULL in unique constraints, so onConflict would never
+        // match existing rows for products without a variant (variant_id = null).
+        let existingQuery = supabase
             .from('cart_items')
-            .upsert(
-                {user_id:userId,product_id:productId,quantity},
-                {onConflict: 'user_id,product_id'}
-            )
-            .select()
-        
+            .select('id, quantity')
+            .eq('user_id', userId)
+            .eq('product_id', productId)
+
+        existingQuery = variantId
+            ? existingQuery.eq('variant_id', variantId)
+            : existingQuery.is('variant_id', null)
+
+        const { data: existing, error: findError } = await existingQuery.maybeSingle()
+
+        if (findError) throw findError
+
+        let data, error
+
+        if (existing) {
+            ({ data, error } = await supabase
+                .from('cart_items')
+                .update({ quantity: existing.quantity + quantity })
+                .eq('id', existing.id)
+                .select())
+        } else {
+            ({ data, error } = await supabase
+                .from('cart_items')
+                .insert({ user_id: userId, product_id: productId, variant_id: variantId, quantity })
+                .select())
+        }
+
         if (error) throw error
         return NextResponse.json(data)
     }

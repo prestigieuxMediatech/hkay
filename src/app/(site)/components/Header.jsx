@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Heart, ShoppingCart, User, Menu, ChevronRight, Package } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useCart } from './CartContext'
 import {
     Sheet,
@@ -22,6 +22,7 @@ export default function Header() {
     const { cartCount } = useCart()
     const { isLoaded, isSignedIn } = useUser()
     const router = useRouter()
+    const pathname = usePathname()
 
     useEffect(() => {
         const handleScroll = () => {
@@ -52,6 +53,26 @@ export default function Header() {
         isLight ? "text-black hover:text-gray-500" : "text-white hover:text-gray-300"
     }`
 
+    const isActiveRoute = (href) => {
+        if (href === "/") {
+            return pathname === "/"
+        }
+
+        return pathname === href || pathname.startsWith(`${href}/`)
+    }
+
+    const getNavLinkClass = (href) => {
+        const isActive = isActiveRoute(href)
+
+        return `${navLinkClass} ${
+            isActive
+                ? isLight
+                    ? "font-semibold text-[#3b1f0f] underline decoration-[#3b1f0f] underline-offset-8"
+                    : "font-semibold text-white underline decoration-white underline-offset-8"
+                : ""
+        }`
+    }
+
     return (
         <header
             className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
@@ -76,7 +97,8 @@ export default function Header() {
                         <Link
                             key={item.label}
                             href={item.href}
-                            className={navLinkClass}
+                            aria-current={isActiveRoute(item.href) ? "page" : undefined}
+                            className={getNavLinkClass(item.href)}
                         >
                             {item.label}
                         </Link>
@@ -118,14 +140,6 @@ export default function Header() {
                         </div>
                     ) : null}
 
-                    {/* Wishlist */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className={iconBtnClass}
-                    >
-                        <Heart size={22} strokeWidth={1.5} className="size-5" />
-                    </Button>
 
                     <Link href="/cart">
                         <Button
@@ -186,14 +200,23 @@ export default function Header() {
                             <nav className="flex flex-1 flex-col px-4 py-3">
                                 {menu.map((item) => (
                                     <SheetClose asChild key={item.label}>
-                                        <Link
-                                            href={item.href}
-                                            className="flex items-center justify-between rounded-lg px-3 py-4 text-base font-medium text-gray-900 transition-colors hover:bg-gray-50 hover:text-gray-600"
+                                    <Link
+                                        href={item.href}
+                                        aria-current={isActiveRoute(item.href) ? "page" : undefined}
+                                        className={`flex items-center justify-between rounded-lg px-3 py-4 text-base font-medium transition-colors hover:bg-gray-50 hover:text-gray-600 ${
+                                            isActiveRoute(item.href)
+                                                ? "bg-gray-50 text-[#3b1f0f]"
+                                                : "text-gray-900"
+                                        }`}
                                         >
                                             {item.label}
                                             <ChevronRight
                                                 size={18}
-                                                className="text-gray-400"
+                                                className={
+                                                    isActiveRoute(item.href)
+                                                        ? "text-[#3b1f0f]"
+                                                        : "text-gray-400"
+                                                }
                                             />
                                         </Link>
                                     </SheetClose>

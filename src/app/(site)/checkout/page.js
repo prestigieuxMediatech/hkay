@@ -36,7 +36,8 @@ export default function CheckoutPage() {
 
   // calculate totals
   const subtotal = cartItems.reduce((sum, item) => {
-    return sum + (item.products?.price || 0) * item.quantity
+    const price = item.product_variants?.price ?? item.variant_price ?? item.products?.price ?? 0
+    return sum + price * item.quantity
   }, 0)
   const shippingFee = 0
   const total = subtotal + shippingFee
@@ -54,13 +55,19 @@ export default function CheckoutPage() {
     setError('')
 
     try {
-      const items = cartItems.map(item => ({
+      const items = cartItems.map(item => {
+      const variantLabel = item.product_variants?.variant_label || item.variant_label || null
+      const baseName = item.products?.name
+      return {
         product_id: item.product_id,
-        name: item.products?.name,
-        price: item.products?.price,
+        variant_id: item.variant_id || null,
+        variant_label: variantLabel,
+        name: variantLabel ? `${baseName} — ${variantLabel}` : baseName,
+        price: item.product_variants?.price ?? item.variant_price ?? item.products?.price,
         quantity: item.quantity,
         image: item.products?.images?.[0] || null
-      }))
+      }
+    })
 
       const shippingAddress = {
         fullName: form.fullName,
@@ -442,16 +449,10 @@ export default function CheckoutPage() {
                 </button>
 
                 {/* Payment note */}
-                <p className="text-xs text-stone-400 text-center mt-3">
-                  Payment integration coming soon.
-                  Your order will be confirmed manually.
+                <p className="text-[15px] text-stone-1000 text-center mt-3">
+                  It takes 6–7 days to handcraft your order.
+                  After that, delivery usually takes 3–4 business days.
                 </p>
-
-                <div className="mt-4 pt-4 border-t border-stone-100 flex flex-col gap-2">
-                  <p className="text-xs text-stone-400 text-center">🔒 Secure checkout</p>
-                  <p className="text-xs text-stone-400 text-center">🚚 Free shipping across India</p>
-                  <p className="text-xs text-stone-400 text-center">↩️ Easy 7-day returns</p>
-                </div>
               </div>
             </div>
 
