@@ -36,14 +36,6 @@ export default function Footer() {
           </div>
         </div>
 
-        <div>
-          <h4 className="text-lg font-semibold text-gray-900">Support</h4>
-          <div className="mt-4 space-y-3 text-gray-600">
-            {support.map((item) => (
-              <p key={item}>{item}</p>
-            ))}
-          </div>
-        </div>
 
         <div>
           <h4 className="text-lg font-semibold text-gray-900">Policies</h4>
