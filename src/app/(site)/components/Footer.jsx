@@ -59,7 +59,7 @@ export default function Footer() {
         <div>
           <h4 className="text-lg font-semibold text-gray-900">Contact</h4>
           <div className="mt-4 space-y-3 text-gray-600">
-            <p>support@hkay.com</p>
+            <p>hkayhandmadeleather@gmail.com</p>
             <p>+91 88501 49101</p>
             <p>Available Monday to Saturday</p>
           </div>
