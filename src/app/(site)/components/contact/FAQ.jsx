@@ -78,7 +78,7 @@ function FAQ() {
         {faqs.map((faq, index) => (
           <Card
             key={index}
-            data-aos="fade-up"
+            
             className={`border rounded-2xl shadow-sm transition-all duration-300 overflow-hidden ${
               openIndex === index ? "border-black" : ""
             }`}
