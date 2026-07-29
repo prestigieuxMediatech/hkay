@@ -48,7 +48,9 @@ async function Sellers() {
             duration-300
           "
         >
-          Explore Products
+          <Link href="/shop">
+            Explore Products
+          </Link>
         </Button>
       </div>
 

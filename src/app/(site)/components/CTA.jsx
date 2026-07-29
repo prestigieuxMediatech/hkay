@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function CTA() {
   return (
@@ -28,7 +29,9 @@ export default function CTA() {
             duration-300
           "
         >
-          Shop Collection
+          <Link href='/shop'>
+            Shop Collection
+          </Link>
         </Button>
       </div>
     </section>

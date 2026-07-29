@@ -95,7 +95,7 @@ function FAQ() {
 
                 <ChevronDown
                   size={22}
-                  className={`transition-transform duration-300 flex-shrink-0 ${
+                  className={`transition-transform duration-300 ${
                     openIndex === index ? "rotate-180" : ""
                   }`}
                 />

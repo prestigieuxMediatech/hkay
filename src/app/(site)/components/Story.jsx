@@ -1,6 +1,7 @@
 import Image from "next/image";
 import React from "react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 function Story() {
   return (
@@ -31,7 +32,9 @@ function Story() {
             duration-300
           "
         >
-          About Us
+          <Link href="/shop">
+            About Us
+          </Link>
         </Button>
       </div>
 

@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 
 export default async function Categories() {
   const { data: categories = [], error } = await supabase
@@ -33,7 +34,9 @@ export default async function Categories() {
           className="px-8 py-6 rounded-xl bg-black text-white text-base cursor-pointer hover:scale-105 transition-all duration-300"
           data-aos="fade-left"
         >
-          Explore Categories
+          <Link href="/shop">
+            Explore Categories
+          </Link>
         </Button>
       </div>
 

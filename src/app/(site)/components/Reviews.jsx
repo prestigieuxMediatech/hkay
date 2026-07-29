@@ -32,22 +32,7 @@ function Reviews() {
                 </p>
             </div>
 
-            <Button
-            data-aos="fade-left"
-            className="
-                px-8
-                py-6
-                rounded-xl
-                bg-black
-                text-white
-                text-base
-                hover:scale-105
-                transition-all
-                duration-300
-            "
-            >
-            Read All Reviews
-            </Button>
+            
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {reviews.map((review) => (
