@@ -8,7 +8,7 @@ export default function Footer() {
     { label: "Blog", href: "/blog" },
     { label: "Contact", href: "/contact" },
   ];
-  const support = ["Help Center", "Shipping", "Returns"];
+  
   const policies = [
     { label: "Terms & Conditions", href: "/terms-and-conditions" },
     { label: "Privacy Policy", href: "/privacy-policy" },
