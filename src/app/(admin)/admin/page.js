@@ -1,3 +1,6 @@
+"use client"
+
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 
 import { Badge } from "@/components/ui/badge"
@@ -10,61 +13,111 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-const stats = [
-  {
-    label: "Today's Orders",
-    value: "12",
-    note: "4 waiting for fulfillment",
-    dot: "bg-emerald-500",
-  },
-  {
-    label: "Revenue Today",
-    value: "Rs. 18,400",
-    note: "Up from yesterday",
-    dot: "bg-amber-500",
-  },
-  {
-    label: "Pending Orders",
-    value: "5",
-    note: "Needs a quick follow-up",
-    dot: "bg-sky-500",
-  },
-  {
-    label: "Low Stock Items",
-    value: "3",
-    note: "Restock before the weekend",
-    dot: "bg-rose-500",
-  },
-]
+const statusBadgeClass = {
+  paid: "bg-emerald-100 text-emerald-700",
+  pending_payment: "bg-amber-100 text-amber-700",
+  shipped: "bg-sky-100 text-sky-700",
+  delivered: "bg-emerald-100 text-emerald-700",
+  cancelled: "bg-rose-100 text-rose-700",
+}
 
-const recentOrders = [
-  {
-    id: "1042",
-    customer: "Priya M.",
-    product: "Slim Wallet",
-    amount: "Rs. 1,100",
-    status: "Paid",
-    badgeClass: "bg-emerald-100 text-emerald-700",
-  },
-  {
-    id: "1041",
-    customer: "Arjun K.",
-    product: "Briefcase Pro",
-    amount: "Rs. 4,200",
-    status: "Shipped",
-    badgeClass: "bg-sky-100 text-sky-700",
-  },
-  {
-    id: "1040",
-    customer: "Sneha R.",
-    product: "Tote Bag",
-    amount: "Rs. 3,500",
-    status: "Pending",
-    badgeClass: "bg-amber-100 text-amber-700",
-  },
-]
+function formatStatus(status) {
+  return (
+    status
+      ?.split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ") || "Unknown"
+  )
+}
+
+function formatCurrency(value) {
+  return `Rs. ${Number(value || 0).toLocaleString("en-IN")}`
+}
+
+function isOrderToday(order) {
+  const createdAt = new Date(order.created_at)
+  const today = new Date()
+
+  return (
+    createdAt.getFullYear() === today.getFullYear() &&
+    createdAt.getMonth() === today.getMonth() &&
+    createdAt.getDate() === today.getDate()
+  )
+}
 
 export default function AdminDashboard() {
+  const [orders, setOrders] = useState([])
+  const [productCount, setProductCount] = useState(0)
+  const [categoryCount, setCategoryCount] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      try {
+        const [ordersResponse, productsResponse, categoriesResponse] =
+          await Promise.all([
+            fetch("/api/admin/orders"),
+            fetch("/api/admin/products"),
+            fetch("/api/admin/categories"),
+          ])
+
+        const [ordersData, productsData, categoriesData] = await Promise.all([
+          ordersResponse.ok ? ordersResponse.json() : [],
+          productsResponse.ok ? productsResponse.json() : { products: [] },
+          categoriesResponse.ok ? categoriesResponse.json() : { categories: [] },
+        ])
+
+        setOrders(Array.isArray(ordersData) ? ordersData : [])
+        setProductCount(
+          Array.isArray(productsData?.products) ? productsData.products.length : 0
+        )
+        setCategoryCount(
+          Array.isArray(categoriesData?.categories)
+            ? categoriesData.categories.length
+            : 0
+        )
+      } catch (error) {
+        console.error("Failed to fetch dashboard data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [])
+
+  const stats = useMemo(
+    () => [
+      {
+        label: "Total Orders",
+        value: orders.length,
+        note: "All orders placed in the store",
+        dot: "bg-emerald-500",
+      },
+      {
+        label: "Orders Today",
+        value: orders.filter(isOrderToday).length,
+        note: "Orders received today",
+        dot: "bg-amber-500",
+      },
+      {
+        label: "Total Categories",
+        value: categoryCount,
+        note: "Product categories available",
+        dot: "bg-sky-500",
+      },
+      {
+        label: "Total Products",
+        value: productCount,
+        note: "Products currently in the catalogue",
+        dot: "bg-rose-500",
+      },
+    ],
+    [orders, productCount, categoryCount]
+  )
+
+  const recentOrders = orders.slice(0, 5)
+
   return (
     <div className="space-y-6">
       <section className="rounded-3xl border border-stone-200/80 bg-white p-6 shadow-sm md:p-8">
@@ -77,8 +130,7 @@ export default function AdminDashboard() {
               Dashboard
             </h1>
             <p className="mt-2 text-sm leading-6 text-stone-500">
-              A clear snapshot of orders, revenue, and stock levels in one
-              place.
+              A clear snapshot of your store activity in one place.
             </p>
           </div>
 
@@ -111,7 +163,7 @@ export default function AdminDashboard() {
                 <span className={`size-2.5 rounded-full ${stat.dot}`} />
               </div>
               <p className="mt-4 text-3xl font-semibold tracking-tight text-stone-900">
-                {stat.value}
+                {loading ? "—" : stat.value.toLocaleString("en-IN")}
               </p>
               <p className="mt-2 text-sm text-stone-500">{stat.note}</p>
             </CardContent>
@@ -119,68 +171,55 @@ export default function AdminDashboard() {
         ))}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.35fr_0.85fr]">
-        <Card className="border-stone-200/80 bg-white shadow-sm">
-          <CardHeader className="border-b border-stone-200/70 pb-4">
-            <CardTitle>Recent Orders</CardTitle>
-            <CardDescription>
-              Latest orders that need a quick scan.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            {recentOrders.map((order) => (
-              <Link
-                key={order.id}
-                href={`/admin/orders/${order.id}`}
-                className="flex items-center justify-between border-b border-stone-100 px-5 py-4 transition-colors last:border-b-0 hover:bg-stone-50"
-              >
-                <div>
-                  <p className="font-medium text-stone-900">
-                    #{order.id} - {order.customer}
-                  </p>
-                  <p className="mt-1 text-sm text-stone-500">
-                    {order.product} - {order.amount}
-                  </p>
-                </div>
-                <Badge className={order.badgeClass}>{order.status}</Badge>
-              </Link>
-            ))}
-          </CardContent>
-        </Card>
+      <Card className="border-stone-200/80 bg-white shadow-sm">
+        <CardHeader className="border-b border-stone-200/70 pb-4">
+          <CardTitle>Recent Orders</CardTitle>
+          <CardDescription>Latest orders placed in your store.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <p className="px-5 py-6 text-sm text-stone-500">Loading orders...</p>
+          ) : recentOrders.length ? (
+            recentOrders.map((order) => {
+              const firstItem = order.items?.[0]
+              const itemDescription = firstItem?.name || "No items listed"
+              const additionalItems = Math.max((order.items?.length || 0) - 1, 0)
 
-        <Card className="border-stone-200/80 bg-white shadow-sm">
-          <CardHeader className="border-b border-stone-200/70 pb-4">
-            <CardTitle>Store Focus</CardTitle>
-            <CardDescription>Simple reminders for today.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 p-5">
-            <div className="rounded-2xl bg-stone-50 p-4">
-              <p className="text-sm font-medium text-stone-900">
-                5 orders need attention
-              </p>
-              <p className="mt-1 text-sm text-stone-500">
-                Check pending and shipped orders before the end of day.
-              </p>
-            </div>
-            <div className="rounded-2xl bg-stone-50 p-4">
-              <p className="text-sm font-medium text-stone-900">
-                3 products are low in stock
-              </p>
-              <p className="mt-1 text-sm text-stone-500">
-                Restock the fastest-moving items to avoid gaps.
-              </p>
-            </div>
-            <div className="rounded-2xl bg-stone-50 p-4">
-              <p className="text-sm font-medium text-stone-900">
-                2 blog drafts are ready
-              </p>
-              <p className="mt-1 text-sm text-stone-500">
-                Publish them when the store is quiet.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+              return (
+                <Link
+                  key={order.id}
+                  href={`/admin/orders/${order.id}`}
+                  className="flex items-center justify-between gap-4 border-b border-stone-100 px-5 py-4 transition-colors last:border-b-0 hover:bg-stone-50"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-stone-900">
+                      #{order.id.slice(0, 8).toUpperCase()} -{" "}
+                      {order.shipping_address?.fullName || "Guest customer"}
+                    </p>
+                    <p className="mt-1 truncate text-sm text-stone-500">
+                      {itemDescription}
+                      {additionalItems ? ` + ${additionalItems} more` : ""} -{" "}
+                      {formatCurrency(order.total)}
+                    </p>
+                  </div>
+                  <Badge
+                    className={`shrink-0 ${
+                      statusBadgeClass[order.status] ||
+                      "bg-stone-100 text-stone-600"
+                    }`}
+                  >
+                    {formatStatus(order.status)}
+                  </Badge>
+                </Link>
+              )
+            })
+          ) : (
+            <p className="px-5 py-6 text-sm text-stone-500">
+              No orders have been placed yet.
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
