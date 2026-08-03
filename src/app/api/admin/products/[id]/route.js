@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { supabase } from "@/lib/supabase";
 import { requireAdmin } from "@/lib/require-admin";
 import {
@@ -204,6 +205,12 @@ export async function PATCH(request, context) {
         // Best-effort cleanup only.
       }
     }
+    revalidatePath("/");                       // homepage best-sellers section
+    revalidatePath("/shop");                    // shop listing
+    revalidatePath(`/shop/${existing.slug}`);    // old slug (in case slug changed)
+    if (data.slug !== existing.slug) {
+      revalidatePath(`/shop/${data.slug}`);      // new slug
+    }
 
     return NextResponse.json({ product: data }, { status: 200 });
   } catch (error) {
@@ -251,6 +258,9 @@ export async function DELETE(request, context) {
       // Best-effort cleanup only.
     }
 
+    revalidatePath("/");
+    revalidatePath("/shop");
+    
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
