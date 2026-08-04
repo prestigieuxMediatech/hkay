@@ -12,31 +12,25 @@ import {
 } from "@/components/ui/carousel";
 
 import Autoplay from "embla-carousel-autoplay";
+import { DEFAULT_HERO_SLIDES } from "@/lib/hero-slides";
 
 export default function Hero() {
   const [api, setApi] = useState();
   const [current, setCurrent] = useState(0);
+  const [slides, setSlides] = useState(DEFAULT_HERO_SLIDES);
 
-  const slides = [
-    {
-      image: "/hero2.png",
-      title: "New Season Collection",
-      description:
-        "Discover premium fashion, trending styles, and exclusive deals designed for every occasion.",
-    },
-    {
-      image: "/hero3.png",
-      title: "Summer Essentials",
-      description:
-        "Stay stylish and comfortable with our curated summer collection.",
-    },
-    {
-      image: "/hero4.png",
-      title: "Luxury Accessories",
-      description:
-        "Complete your look with premium accessories crafted for elegance.",
-    },
-  ];
+  useEffect(() => {
+    fetch("/api/hero-slides", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (Array.isArray(data.slides) && data.slides.length) {
+          setSlides(data.slides);
+        }
+      })
+      .catch(() => {
+        // The local defaults remain visible if the content service is unavailable.
+      });
+  }, []);
 
   useEffect(() => {
     if (!api) return;
@@ -68,11 +62,11 @@ export default function Hero() {
     >
       <CarouselContent>
         {slides.map((slide, index) => (
-          <CarouselItem key={index}>
+          <CarouselItem key={slide.id || index}>
             <section
               className="relative flex min-h-[420px] sm:min-h-[520px] lg:min-h-[650px] items-center bg-cover bg-center"
               style={{
-                backgroundImage: `url(${slide.image})`,
+                backgroundImage: `url(${slide.image_url})`,
               }}
             >
               {/* Overlay */}
