@@ -18,7 +18,7 @@ export async function POST(request) {
       return Response.json({ error: 'Cart is empty' }, { status: 400 })
     }
 
-    // Recalculate total server-side from real product/variant prices — never trust client amount
+    // Recalculate total server-side from real product/variant/option prices — never trust client amount
     const productIds = items.map(item => item.product_id)
     const variantIds = items.map(item => item.variant_id).filter(Boolean)
 
@@ -51,6 +51,22 @@ export async function POST(request) {
       }
     }
 
+    // Look up real prices for selected variant OPTIONS (Foil Color, Buckle Type, etc.)
+    // Keyed as product_id::group_name::value -> price, so we never trust the client's
+    // options_price_adjustment number directly.
+    const { data: optionRows, error: optionError } = await supabase
+      .from('product_variant_options')
+      .select('product_id, group_name, value, price, is_active')
+      .in('product_id', productIds)
+
+    if (optionError) throw optionError
+
+    const optionPriceMap = new Map(
+      optionRows
+        .filter(o => o.is_active)
+        .map(o => [`${o.product_id}::${o.group_name}::${o.value}`, o.price || 0])
+    )
+
     let subtotal = 0
     for (const item of items) {
       const basePrice = priceMap.get(item.product_id)
@@ -72,6 +88,15 @@ export async function POST(request) {
         }
         const variantPrice = variantPriceMap.get(item.variant_id)
         effectivePrice = variantPrice != null ? variantPrice : basePrice
+      }
+
+      // Add real option price adjustments looked up from DB — ignore whatever
+      // options_price_adjustment the client sent
+      const selectedOptions = item.selected_options || {}
+      for (const [groupName, value] of Object.entries(selectedOptions)) {
+        const key = `${item.product_id}::${groupName}::${value}`
+        const optionPrice = optionPriceMap.get(key) || 0
+        effectivePrice += optionPrice
       }
 
       subtotal += effectivePrice * item.quantity

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Download } from "lucide-react"
 
 const statusBadgeClass = {
   paid: "bg-green-100 text-green-700",
@@ -35,6 +36,10 @@ export default function OrderDetailPage({ params }) {
   const [shipping, setShipping] = useState(false)
   const [shipError, setShipError] = useState(null)
 
+  const [invoice, setInvoice] = useState(null)
+  const [invoiceLoading, setInvoiceLoading] = useState(true)
+  const [invoiceError, setInvoiceError] = useState(null)
+
   useEffect(() => {
     async function resolveParams() {
       const resolved = await params
@@ -60,6 +65,41 @@ export default function OrderDetailPage({ params }) {
 
     fetchOrder()
   }, [orderId])
+
+  useEffect(() => {
+    if (!orderId || !order) return
+
+    // Only worth checking once the order is actually paid/shipped/delivered —
+    // matches the same condition the invoice API uses to decide whether it can generate one.
+    const canHaveInvoice = ['paid', 'shipped', 'delivered'].includes(order.status)
+    if (!canHaveInvoice) {
+      setInvoiceLoading(false)
+      return
+    }
+
+    async function fetchInvoice() {
+      setInvoiceLoading(true)
+      setInvoiceError(null)
+      try {
+        const res = await fetch(`/api/admin/orders/${orderId}/invoice`)
+        const data = await res.json()
+
+        if (!res.ok) {
+          setInvoiceError(data.error || 'Failed to load invoice')
+          return
+        }
+
+        setInvoice(data.invoice)
+      } catch (err) {
+        console.error('Failed to fetch invoice:', err)
+        setInvoiceError('Something went wrong loading the invoice.')
+      } finally {
+        setInvoiceLoading(false)
+      }
+    }
+
+    fetchInvoice()
+  }, [orderId, order])
 
   async function updateStatus(newStatus) {
     setUpdating(true)
@@ -199,25 +239,78 @@ export default function OrderDetailPage({ params }) {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">
-            {order.items?.map((item, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-stone-100 flex-shrink-0">
-                  {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-stone-200" />
-                  )}
+            {order.items?.map((item, i) => {
+              const selectedOptions = item.selected_options || {}
+              return (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-stone-100 shrink-0">
+                    {item.image ? (
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-stone-200" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{item.name}</p>
+                    {item.variant_label && (
+                      <p className="text-xs text-muted-foreground">Size: {item.variant_label}</p>
+                    )}
+                    {Object.entries(selectedOptions).map(([group, value]) => (
+                      <p key={group} className="text-xs text-muted-foreground">
+                        {group}: {value}
+                      </p>
+                    ))}
+                    <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                  </div>
+                  <p className="text-sm font-semibold">
+                    ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                  </p>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{item.name}</p>
-                  <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                </div>
-                <p className="text-sm font-semibold">
-                  ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Invoice</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!['paid', 'shipped', 'delivered'].includes(order.status) ? (
+            <p className="text-sm text-muted-foreground">
+              Invoice will be available once the order is paid.
+            </p>
+          ) : invoiceLoading ? (
+            <p className="text-sm text-muted-foreground">Loading invoice...</p>
+          ) : invoiceError ? (
+            <p className="text-sm text-red-600">{invoiceError}</p>
+          ) : invoice ? (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-medium">{invoice.invoice_number}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Total: ₹{Number(invoice.grand_total || 0).toLocaleString('en-IN')}
                 </p>
               </div>
-            ))}
-          </div>
+              {invoice.downloadUrl ? (
+                <Button
+                  asChild
+                  className="w-full text-white sm:w-auto"
+                  style={{ background: "#1c0d02" }}
+                >
+                  <a href={invoice.downloadUrl} target="_blank" rel="noreferrer">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download invoice
+                  </a>
+                </Button>
+              ) : (
+                <p className="text-sm text-muted-foreground">Invoice PDF is being prepared.</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No invoice found for this order.</p>
+          )}
         </CardContent>
       </Card>
 
@@ -308,9 +401,6 @@ export default function OrderDetailPage({ params }) {
             Mark as Delivered
           </Button>
         )}
-        <Button variant="outline" className="w-full md:w-auto">
-          Print Invoice
-        </Button>
       </div>
     </div>
   )

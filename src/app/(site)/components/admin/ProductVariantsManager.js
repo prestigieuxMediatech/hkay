@@ -261,7 +261,7 @@ export default function ProductVariantsManager({ productId }) {
       </div>
 
       <div className="mt-3 flex flex-wrap items-end gap-2">
-        <div className="flex-1 min-w-[120px]">
+        <div className="flex-1 min-w-30">
           <label className="mb-1 block text-xs font-medium text-stone-700">
             Size label
           </label>

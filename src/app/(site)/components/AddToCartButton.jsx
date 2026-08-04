@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useCart } from './CartContext'
 import { ShoppingCart, Check } from 'lucide-react'
 
-export default function AddToCartButton({ product, variant, onClick, className }) {
+export default function AddToCartButton({ product, variant, selectedOptions = {}, onClick, className }) {
   const { addToCart } = useCart()
 
   const [loading, setLoading] = useState(false)
@@ -17,7 +17,7 @@ export default function AddToCartButton({ product, variant, onClick, className }
     }
 
     setLoading(true)
-    await addToCart(product, variant || null)
+    await addToCart(product, variant || null, 1, selectedOptions)
     setLoading(false)
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)

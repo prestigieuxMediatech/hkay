@@ -91,7 +91,7 @@ export default function OrderConfirmationPage({ params }) {
     <div className="min-h-screen bg-stone-50 pb-16">
 
       {/* Dark banner */}
-      <div className="bg-stone-900 h-[200px] sm:h-[220px] flex items-end px-6 pb-8 md:px-10 lg:px-20">
+      <div className="bg-stone-900 h-55 sm:h-55 flex items-end px-6 pb-8 md:px-10 lg:px-20">
         <div className="mt-20">
           <h1 className="text-3xl font-bold text-white md:text-4xl">
             Order Confirmed
@@ -125,28 +125,41 @@ export default function OrderConfirmationPage({ params }) {
               Order items
             </h3>
             <div className="flex flex-col gap-3">
-              {order.items?.map((item, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-stone-100 flex-shrink-0">
-                    {item.image ? (
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-stone-200" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-stone-900 truncate">
-                      {item.name}
+              {order.items?.map((item, i) => {
+                const selectedOptions = item.selected_options || {}
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-stone-100 shrink-0">
+                      {item.image ? (
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-stone-200" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-stone-900 truncate">
+                        {item.name}
+                      </p>
+                      {item.variant_label && (
+                        <p className="text-xs text-stone-500 mt-0.5">
+                          Size: {item.variant_label}
+                        </p>
+                      )}
+                      {Object.entries(selectedOptions).map(([group, value]) => (
+                        <p key={group} className="text-xs text-stone-500 mt-0.5">
+                          {group}: {value}
+                        </p>
+                      ))}
+                      <p className="text-xs text-stone-500 mt-0.5">
+                        Qty: {item.quantity}
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold text-stone-900">
+                      ₹{(item.price * item.quantity).toLocaleString('en-IN')}
                     </p>
-                    <p className="text-xs text-stone-500 mt-0.5">
-                      Qty: {item.quantity}
-                    </p>
                   </div>
-                  <p className="text-sm font-semibold text-stone-900">
-                    ₹{(item.price * item.quantity).toLocaleString('en-IN')}
-                  </p>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             <div className="border-t border-stone-100 mt-4 pt-4 flex justify-between items-center">
@@ -158,7 +171,6 @@ export default function OrderConfirmationPage({ params }) {
           </div>
         )}
 
-        {/* Shipping address */}
         {order?.shipping_address && (
           <div className="bg-white border border-stone-200 rounded-2xl p-6 mb-6">
             <h3 className="text-sm font-semibold text-stone-900 mb-3">
@@ -183,7 +195,6 @@ export default function OrderConfirmationPage({ params }) {
           </div>
         )}
 
-        {/* Invoice */}
         {(invoiceLoading || invoiceChecked) && (
           <div className="bg-white border border-stone-200 rounded-2xl p-6 mb-6">
             <h3 className="text-sm font-semibold text-stone-900 mb-3">
@@ -227,7 +238,6 @@ export default function OrderConfirmationPage({ params }) {
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
             href="/shop"

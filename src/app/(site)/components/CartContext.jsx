@@ -5,9 +5,10 @@ import { useUser } from '@clerk/nextjs'
 
 const CartContext = createContext()
 
-// Build a stable composite key for a cart line: same product + same variant = same line
-function lineKey(productId, variantId) {
-  return `${productId}::${variantId || 'novariant'}`
+// Build a stable composite key for a cart line: same product + same variant + same options = same line
+function lineKey(productId, variantId, selectedOptions = {}) {
+  const optionsKey = JSON.stringify(selectedOptions || {})
+  return `${productId}::${variantId || 'novariant'}::${optionsKey}`
 }
 
 export function CartProvider({ children }) {
@@ -55,10 +56,20 @@ export function CartProvider({ children }) {
   }
 
   // ADD TO CART
-  async function addToCart(product, variant = null, quantity = 1) {
+  // selectedOptions shape coming in from the product page: { "Foil Color": { id, value, price }, ... }
+  async function addToCart(product, variant = null, quantity = 1, selectedOptions = {}) {
     const variantId = variant?.id || null
     const variantLabel = variant?.variant_label || null
     const variantPrice = variant?.price ?? null
+
+    // Flatten to a simple, storable shape: { "Foil Color": "Gold" }
+    const selectedOptionsFlat = Object.fromEntries(
+      Object.entries(selectedOptions || {}).map(([group, opt]) => [group, opt.value])
+    )
+    const optionsPriceAdjustment = Object.values(selectedOptions || {}).reduce(
+      (sum, opt) => sum + (opt.price || 0),
+      0
+    )
 
     if (user) {
       try {
@@ -69,7 +80,9 @@ export function CartProvider({ children }) {
             userId: user.id,
             productId: product.id,
             variantId,
-            quantity
+            quantity,
+            selectedOptions: selectedOptionsFlat,
+            optionsPriceAdjustment
           })
         })
         await fetchCart(user.id)
@@ -79,7 +92,8 @@ export function CartProvider({ children }) {
     } else {
       const local = getLocalCart()
       const existing = local.find(
-        i => lineKey(i.product_id, i.variant_id) === lineKey(product.id, variantId)
+        i => lineKey(i.product_id, i.variant_id, i.selected_options) ===
+             lineKey(product.id, variantId, selectedOptionsFlat)
       )
 
       if (existing) {
@@ -90,6 +104,8 @@ export function CartProvider({ children }) {
           variant_id: variantId,
           variant_label: variantLabel,
           variant_price: variantPrice,
+          selected_options: selectedOptionsFlat,
+          options_price_adjustment: optionsPriceAdjustment,
           quantity,
           products: product
         })
@@ -101,8 +117,6 @@ export function CartProvider({ children }) {
     }
   }
 
-  // REMOVE FROM CART
-  // For guests: pass { productId, variantId }. For logged-in: pass the cart row id (string/uuid), unchanged.
   // REMOVE FROM CART — pass the full cart item object
   async function removeFromCart(item) {
     if (user) {
@@ -110,7 +124,8 @@ export function CartProvider({ children }) {
       await fetchCart(user.id)
     } else {
       const local = getLocalCart().filter(
-        i => lineKey(i.product_id, i.variant_id) !== lineKey(item.product_id, item.variant_id)
+        i => lineKey(i.product_id, i.variant_id, i.selected_options) !==
+             lineKey(item.product_id, item.variant_id, item.selected_options)
       )
       saveLocalCart(local)
       setCartItems(local)
@@ -129,7 +144,8 @@ export function CartProvider({ children }) {
       await fetchCart(user.id)
     } else {
       const local = getLocalCart().map(i =>
-        lineKey(i.product_id, i.variant_id) === lineKey(item.product_id, item.variant_id)
+        lineKey(i.product_id, i.variant_id, i.selected_options) ===
+        lineKey(item.product_id, item.variant_id, item.selected_options)
           ? { ...i, quantity }
           : i
       )
@@ -138,6 +154,7 @@ export function CartProvider({ children }) {
       setCartCount(local.reduce((sum, i) => sum + i.quantity, 0))
     }
   }
+
   return (
     <CartContext.Provider value={{
       cartItems,

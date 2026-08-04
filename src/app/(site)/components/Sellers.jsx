@@ -69,7 +69,7 @@ async function Sellers() {
 
               {/* image links to product page */}
               <Link href={`/shop/${item.slug}`}>
-                <div className="relative aspect-[4/5] w-full 
+                <div className="relative aspect-4/5 w-full 
                   overflow-hidden bg-stone-100">
                   {item.images?.[0] ? (
                     <Image

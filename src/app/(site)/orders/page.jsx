@@ -119,7 +119,7 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen bg-stone-50 pb-16">
       {/* Dark banner */}
-      <div className="bg-stone-900 h-[200px] sm:h-[220px] flex items-end px-6 pb-8 md:px-10 lg:px-20">
+      <div className="bg-stone-900 h-50 sm:h-55 flex items-end px-6 pb-8 md:px-10 lg:px-20">
         <div className="mt-20">
           <p className="text-stone-400 text-sm mb-2">
             Home / My Orders
@@ -165,7 +165,7 @@ export default function OrdersPage() {
                       href={`/order-confirmation/${order.id}`}
                       className="flex items-center gap-4 min-w-0 flex-1"
                     >
-                      <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center shrink-0">
                         <Package size={20} className="text-stone-500" />
                       </div>
                       <div className="min-w-0">
@@ -184,7 +184,7 @@ export default function OrdersPage() {
                       </div>
                     </Link>
 
-                    <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="flex items-center gap-4 shrink-0">
                       <span
                         className={`text-xs font-medium px-3 py-1 rounded-full ${
                           statusStyles[order.status] || 'bg-stone-100 text-stone-600'

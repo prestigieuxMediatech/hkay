@@ -8,6 +8,12 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ShoppingBag } from 'lucide-react'
 
+function getUnitPrice(item) {
+  const basePrice = item.product_variants?.price ?? item.variant_price ?? item.products?.price ?? 0
+  const optionsAdj = item.options_price_adjustment || 0
+  return basePrice + optionsAdj
+}
+
 export default function CheckoutPage() {
   const { cartItems, cartCount } = useCart()
   const { user, isLoaded, isSignedIn } = useUser()
@@ -34,10 +40,9 @@ export default function CheckoutPage() {
     pincode: '',
   })
 
-  // calculate totals
+  // calculate totals — includes options_price_adjustment on top of base/variant price
   const subtotal = cartItems.reduce((sum, item) => {
-    const price = item.product_variants?.price ?? item.variant_price ?? item.products?.price ?? 0
-    return sum + price * item.quantity
+    return sum + getUnitPrice(item) * item.quantity
   }, 0)
   const shippingFee = 0
   const total = subtotal + shippingFee
@@ -56,18 +61,28 @@ export default function CheckoutPage() {
 
     try {
       const items = cartItems.map(item => {
-      const variantLabel = item.product_variants?.variant_label || item.variant_label || null
-      const baseName = item.products?.name
-      return {
-        product_id: item.product_id,
-        variant_id: item.variant_id || null,
-        variant_label: variantLabel,
-        name: variantLabel ? `${baseName} — ${variantLabel}` : baseName,
-        price: item.product_variants?.price ?? item.variant_price ?? item.products?.price,
-        quantity: item.quantity,
-        image: item.products?.images?.[0] || null
-      }
-    })
+        const variantLabel = item.product_variants?.variant_label || item.variant_label || null
+        const selectedOptions = item.selected_options || {}
+        const optionsPriceAdjustment = item.options_price_adjustment || 0
+        const baseName = item.products?.name
+
+        // Build a readable suffix from size + selected options, e.g. "— 20mm, Foil Color: Gold"
+        const optionLabels = Object.entries(selectedOptions).map(([group, value]) => `${group}: ${value}`)
+        const labelParts = [variantLabel, ...optionLabels].filter(Boolean)
+        const name = labelParts.length ? `${baseName} — ${labelParts.join(', ')}` : baseName
+
+        return {
+          product_id: item.product_id,
+          variant_id: item.variant_id || null,
+          variant_label: variantLabel,
+          selected_options: selectedOptions,
+          options_price_adjustment: optionsPriceAdjustment,
+          name,
+          price: getUnitPrice(item),
+          quantity: item.quantity,
+          image: item.products?.images?.[0] || null
+        }
+      })
 
       const shippingAddress = {
         fullName: form.fullName,
@@ -383,32 +398,48 @@ export default function CheckoutPage() {
 
                 {/* Cart items */}
                 <div className="flex flex-col gap-3 mb-5">
-                  {cartItems.map(item => (
-                    <div key={item.id || item.product_id} className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-lg overflow-hidden bg-stone-100 flex-shrink-0">
-                        {item.products?.images?.[0] ? (
-                          <img
-                            src={item.products.images[0]}
-                            alt={item.products.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-stone-200" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-stone-900 truncate">
-                          {item.products?.name}
+                  {cartItems.map(item => {
+                    const variantLabel = item.product_variants?.variant_label || item.variant_label || null
+                    const selectedOptions = item.selected_options || {}
+                    const unitPrice = getUnitPrice(item)
+
+                    return (
+                      <div key={item.id || item.product_id} className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-stone-100 flex-shrink-0">
+                          {item.products?.images?.[0] ? (
+                            <img
+                              src={item.products.images[0]}
+                              alt={item.products.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-stone-200" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-stone-900 truncate">
+                            {item.products?.name}
+                          </p>
+                          {variantLabel && (
+                            <p className="text-xs text-stone-500 mt-0.5">
+                              Size: {variantLabel}
+                            </p>
+                          )}
+                          {Object.entries(selectedOptions).map(([group, value]) => (
+                            <p key={group} className="text-xs text-stone-500 mt-0.5">
+                              {group}: {value}
+                            </p>
+                          ))}
+                          <p className="text-xs text-stone-500 mt-0.5">
+                            Qty: {item.quantity}
+                          </p>
+                        </div>
+                        <p className="text-sm font-semibold text-stone-900 flex-shrink-0">
+                          ₹{(unitPrice * item.quantity).toLocaleString('en-IN')}
                         </p>
-                        <p className="text-xs text-stone-500 mt-0.5">
-                          Qty: {item.quantity}
-                        </p>
                       </div>
-                      <p className="text-sm font-semibold text-stone-900 flex-shrink-0">
-                        ₹{((item.products?.price || 0) * item.quantity).toLocaleString('en-IN')}
-                      </p>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
 
                 <div className="border-t border-stone-100 pt-4 flex flex-col gap-3 mb-5">

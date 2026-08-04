@@ -44,7 +44,7 @@ function ShopSection() {
           <div className="mb-4 sm:mb-6 flex justify-stretch md:justify-end">
             <Input
               placeholder="Search products..."
-              className="w-full md:w-[350px]"
+              className="w-full md:w-87.5"
             />
           </div>
 
@@ -81,8 +81,7 @@ function ShopSection() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 
-  gap-x-3 gap-y-4 sm:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-4 sm:gap-6">
         {filtered.length === 0 ? (
           <p className="col-span-2 lg:col-span-4 text-center text-gray-500 py-20">
             No products found.
@@ -100,7 +99,7 @@ function ShopSection() {
 
                 {/* image links to product page */}
                 <Link href={`/shop/${item.slug}`}>
-                  <div className="relative aspect-[4/5] w-full 
+                  <div className="relative aspect-4/5 w-full 
                     overflow-hidden bg-stone-100">
                     {item.images?.[0] ? (
                       <Image

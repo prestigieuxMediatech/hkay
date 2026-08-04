@@ -87,7 +87,7 @@ function money(n) {
   return Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-// Build a de-duplicated HSN legend line, e.g. "4202 – Articles of Leather"
+// Build a de-duplicated HSN legend line, e.g. "4202 - Articles of Leather"
 // You'll need an hsnDescriptions map (hsn_code -> description) passed in or imported
 function buildHsnNote(lineItems, hsnDescriptions = {}) {
   const seen = new Set()
@@ -96,7 +96,7 @@ function buildHsnNote(lineItems, hsnDescriptions = {}) {
     if (!seen.has(item.hsn_code)) {
       seen.add(item.hsn_code)
       const desc = hsnDescriptions[item.hsn_code]
-      if (desc) parts.push(`${item.hsn_code} – ${desc}`)
+      if (desc) parts.push(`${item.hsn_code} - ${desc}`)
     }
   }
   return parts.length ? `HSN Codes: ${parts.join('; ')}` : null
@@ -163,7 +163,7 @@ export default function InvoiceDocument({ invoice, hsnDescriptions }) {
               <Text style={styles.detailHeader}>BUYER DETAILS</Text>
               <View style={styles.detailBody}>
                 <Text style={styles.detailName}>{buyer.name}</Text>
-                <Text style={styles.detailLine}>{buyer.address}, {buyer.city}, {buyer.state} – {buyer.pincode}</Text>
+                <Text style={styles.detailLine}>{buyer.address}, {buyer.city}, {buyer.state} - {buyer.pincode}</Text>
                 {buyer.gstin && <Text style={styles.detailLine}>GSTIN: {buyer.gstin}</Text>}
                 <Text style={styles.detailLine}>State Code: {invoice.place_of_supply}</Text>
                 <Text style={styles.detailLine}>Address Type: {invoice.address_type}</Text>
@@ -202,12 +202,12 @@ export default function InvoiceDocument({ invoice, hsnDescriptions }) {
               <Text style={[styles.th, styles.colName]}>Product Name</Text>
               <Text style={[styles.th, styles.colHsn]}>HSN Code</Text>
               <Text style={[styles.th, styles.colQty]}>Qty</Text>
-              <Text style={[styles.th, styles.colRate]}>Unit Price (₹)</Text>
-              <Text style={[styles.th, styles.colTaxable]}>Taxable Value (₹)</Text>
-              <Text style={[styles.th, styles.colCgst]}>CGST 9% (₹)</Text>
-              <Text style={[styles.th, styles.colSgst]}>SGST 9% (₹)</Text>
-              <Text style={[styles.th, styles.colIgst]}>IGST 18% (₹)</Text>
-              <Text style={[styles.th, styles.colTotal]}>Total Amount (₹)</Text>
+              <Text style={[styles.th, styles.colRate]}>Unit Price (Rs.)</Text>
+              <Text style={[styles.th, styles.colTaxable]}>Taxable Value (Rs.)</Text>
+              <Text style={[styles.th, styles.colCgst]}>CGST 9% (Rs.)</Text>
+              <Text style={[styles.th, styles.colSgst]}>SGST 9% (Rs.)</Text>
+              <Text style={[styles.th, styles.colIgst]}>IGST 18% (Rs.)</Text>
+              <Text style={[styles.th, styles.colTotal]}>Total Amount (Rs.)</Text>
             </View>
             {items.map((item, idx) => (
               <View style={styles.tableRow} key={idx}>
@@ -217,9 +217,9 @@ export default function InvoiceDocument({ invoice, hsnDescriptions }) {
                 <Text style={[styles.td, styles.colQty]}>{item.quantity}</Text>
                 <Text style={[styles.td, styles.colRate]}>{money(item.rate)}</Text>
                 <Text style={[styles.td, styles.colTaxable]}>{money(item.taxable_value)}</Text>
-                <Text style={[styles.td, styles.colCgst]}>{item.cgst ? money(item.cgst) : '–'}</Text>
-                <Text style={[styles.td, styles.colSgst]}>{item.sgst ? money(item.sgst) : '–'}</Text>
-                <Text style={[styles.td, styles.colIgst]}>{item.igst ? money(item.igst) : '–'}</Text>
+                <Text style={[styles.td, styles.colCgst]}>{item.cgst ? money(item.cgst) : '-'}</Text>
+                <Text style={[styles.td, styles.colSgst]}>{item.sgst ? money(item.sgst) : '-'}</Text>
+                <Text style={[styles.td, styles.colIgst]}>{item.igst ? money(item.igst) : '-'}</Text>
                 <Text style={[styles.td, styles.colTotal]}>{money(item.total)}</Text>
               </View>
             ))}
@@ -229,7 +229,7 @@ export default function InvoiceDocument({ invoice, hsnDescriptions }) {
           {/* Totals + words */}
           <View style={styles.summaryRow}>
             <View style={styles.wordsBox}>
-              <Text style={styles.wordsLabel}>Total in Words (₹):</Text>
+              <Text style={styles.wordsLabel}>Total in Words (Rs.):</Text>
               <Text style={styles.wordsValue}>{numberToWords(invoice.grand_total)}</Text>
             </View>
             <View style={styles.taxTable}>
@@ -239,18 +239,18 @@ export default function InvoiceDocument({ invoice, hsnDescriptions }) {
               </View>
               <View style={styles.taxRow}>
                 <Text style={styles.taxLabel}>Total CGST (9%)</Text>
-                <Text style={styles.taxValue}>{hasIgst ? '–' : money(invoice.total_tax / 2)}</Text>
+                <Text style={styles.taxValue}>{hasIgst ? '-' : money(invoice.total_tax / 2)}</Text>
               </View>
               <View style={styles.taxRow}>
                 <Text style={styles.taxLabel}>Total SGST (9%)</Text>
-                <Text style={styles.taxValue}>{hasIgst ? '–' : money(invoice.total_tax / 2)}</Text>
+                <Text style={styles.taxValue}>{hasIgst ? '-' : money(invoice.total_tax / 2)}</Text>
               </View>
               <View style={styles.taxRow}>
                 <Text style={styles.taxLabel}>Total IGST (18%)</Text>
-                <Text style={styles.taxValue}>{hasIgst ? money(invoice.total_tax) : '–'}</Text>
+                <Text style={styles.taxValue}>{hasIgst ? money(invoice.total_tax) : '-'}</Text>
               </View>
               <View style={[styles.taxRow, styles.grandTotalRow]}>
-                <Text style={styles.grandTotalLabel}>Grand Total (₹)</Text>
+                <Text style={styles.grandTotalLabel}>Grand Total (Rs.)</Text>
                 <Text style={styles.grandTotalValue}>{money(invoice.grand_total)}</Text>
               </View>
             </View>
@@ -258,7 +258,7 @@ export default function InvoiceDocument({ invoice, hsnDescriptions }) {
 
           <View style={styles.taxSummaryBar}>
             <Text>
-              Taxable Value: ₹{money(invoice.subtotal)}  |  CGST: ₹{hasIgst ? '0.00' : money(invoice.total_tax / 2)}  |  SGST: ₹{hasIgst ? '0.00' : money(invoice.total_tax / 2)}  |  IGST: ₹{hasIgst ? money(invoice.total_tax) : '0.00'}  |  Total Tax: ₹{money(invoice.total_tax)}
+              Taxable Value: Rs. {money(invoice.subtotal)}  |  CGST: Rs. {hasIgst ? '0.00' : money(invoice.total_tax / 2)}  |  SGST: Rs. {hasIgst ? '0.00' : money(invoice.total_tax / 2)}  |  IGST: Rs. {hasIgst ? money(invoice.total_tax) : '0.00'}  |  Total Tax: Rs. {money(invoice.total_tax)}
             </Text>
           </View>
 

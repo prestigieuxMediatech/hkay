@@ -5,8 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ImagePlus, Plus, X } from "lucide-react";
 
+
 import { Button } from "@/components/ui/button";
 import ProductVariantsManager from "@/app/(site)/components/admin/ProductVariantsManager";
+import ProductVariantOptionsManager from "./ProductVariantOptionsManager";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -547,6 +549,12 @@ export default function ProductForm({
             {product?.id ? (
               <div>
                 <ProductVariantsManager productId={product.id} />
+              </div>
+            ) : null}
+
+            {product?.id ? (
+              <div>
+                <ProductVariantOptionsManager productId={product.id} />
               </div>
             ) : null}
 

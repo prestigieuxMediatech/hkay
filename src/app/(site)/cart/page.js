@@ -10,9 +10,15 @@ function getVariantLabel(item) {
   return item.product_variants?.variant_label || item.variant_label || null
 }
 
+function getSelectedOptions(item) {
+  return item.selected_options || {}
+}
+
 function getItemPrice(item) {
   const variantPrice = item.product_variants?.price ?? item.variant_price
-  return variantPrice ?? item.products?.price ?? 0
+  const base = variantPrice ?? item.products?.price ?? 0
+  const optionsAdj = item.options_price_adjustment || 0
+  return base + optionsAdj
 }
 
 export default function CartPage() {
@@ -79,11 +85,12 @@ export default function CartPage() {
         <div className="w-full lg:flex-1 flex flex-col gap-3">
           {cartItems.map((item) => {
             const variantLabel = getVariantLabel(item)
+            const selectedOptions = getSelectedOptions(item)
             const itemPrice = getItemPrice(item)
 
             return (
               <div
-                key={item.id || `${item.product_id}-${item.variant_id || 'novariant'}`}
+                key={item.id || `${item.product_id}-${item.variant_id || 'novariant'}-${JSON.stringify(selectedOptions)}`}
                 className="bg-white border border-stone-200
                   rounded-2xl p-4 sm:p-5"
               >
@@ -117,6 +124,11 @@ export default function CartPage() {
                             Size: {variantLabel}
                           </p>
                         )}
+                        {Object.entries(selectedOptions).map(([group, value]) => (
+                          <p key={group} className="text-xs text-stone-400 mt-0.5">
+                            {group}: {value}
+                          </p>
+                        ))}
                         <p className="text-sm text-stone-500 mt-1">
                           ₹{itemPrice.toLocaleString('en-IN')}
                         </p>

@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Menu,
   Package,
+  Receipt,
   Tags,
   Settings2,
   ShoppingBag,
@@ -21,6 +22,7 @@ import { cn } from "@/lib/utils"
 const navLinks = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Orders", href: "/admin/orders", icon: ShoppingBag },
+  { label: "Invoices", href: "/admin/invoices", icon: Receipt },
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Categories", href: "/admin/categories", icon: Tags },
   { label: "Blog", href: "/admin/blog", icon: FileText },
