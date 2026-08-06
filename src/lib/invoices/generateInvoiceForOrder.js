@@ -61,6 +61,8 @@ export async function generateInvoiceForOrder(orderId) {
       payment_method: 'Razorpay',
       address_type: isIntraState ? 'Intra-State' : 'Inter-State',
       status: 'generated',
+      approval_status: 'pending_review',  // ← add this line
+      source: 'online',
       line_items: lineItems,
       billing_details: {
         name: addr.fullName,

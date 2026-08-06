@@ -10,7 +10,7 @@ export async function GET(request) {
 
   const { data, error } = await supabase
     .from('invoices')
-    .select('id, invoice_number, invoice_date, order_id, source, grand_total, status, pdf_url, edited_by_admin, billing_details')
+    .select('id, invoice_number, invoice_date, order_id, source, approval_status, grand_total, status, pdf_url, edited_by_admin, billing_details')
     .order('invoice_date', { ascending: false })
 
   if (error) {
@@ -43,7 +43,7 @@ export async function POST(request) {
 
   try {
     const body = await request.json()
-    const invoice = await generateManualInvoice(body)
+    const invoice = await generateManualInvoice(body,auth.admin)
 
     let downloadUrl = null
     if (invoice.pdf_url) {

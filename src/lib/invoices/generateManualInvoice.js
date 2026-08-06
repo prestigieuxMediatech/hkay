@@ -12,7 +12,7 @@ import { generateAndUploadInvoicePdf } from './generateAndUploadInvoicePdf'
 //   items: [{ name, hsn_code, quantity, rate, gstRate }],
 //   paymentMethod, dispatchDate, transporter, awbNo
 // }
-export async function generateManualInvoice(payload) {
+export async function generateManualInvoice(payload,adminUser) {
   const { buyer, items } = payload
 
   if (!buyer?.name || !buyer?.state) {
@@ -44,6 +44,9 @@ export async function generateManualInvoice(payload) {
     .insert({
       order_id: null,
       source: 'manual',
+      approval_status: 'approved',        // ← add
+      approved_at: invoiceDate.toISOString(), // ← add
+      approved_by: adminUser?.email || 'admin',
       invoice_number: invoiceNumber,
       invoice_date: invoiceDate.toISOString(),
       due_date: dueDate.toISOString(),

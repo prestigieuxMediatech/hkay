@@ -8,7 +8,9 @@ export const runtime = 'nodejs'
 async function buildInvoiceResponse(invoice) {
   let downloadUrl = null
 
-  if (invoice?.pdf_url) {
+  // Only expose the PDF once admin has approved it — customer shouldn't
+  // be able to download an invoice still pending review.
+  if (invoice?.pdf_url && invoice?.approval_status === 'approved') {
     const { data: signedUrlData, error: signError } = await supabase
       .storage
       .from('invoices')
@@ -24,11 +26,11 @@ async function buildInvoiceResponse(invoice) {
   return {
     invoice: {
       ...invoice,
+      pdf_url: undefined,       // never leak the raw storage path either
       downloadUrl,
     },
   }
 }
-
 export async function GET(request, { params }) {
   try {
     const { userId } = await auth()
@@ -65,7 +67,7 @@ export async function GET(request, { params }) {
 
     const { data: invoice, error: invoiceError } = await supabase
       .from('invoices')
-      .select('id, invoice_number, invoice_date, order_id, grand_total, status, pdf_url')
+      .select('id, invoice_number, invoice_date, order_id, grand_total, status, approval_status, pdf_url')
       .eq('order_id', id)
       .maybeSingle()
 

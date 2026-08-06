@@ -164,7 +164,7 @@ export default function InvoiceDocument({ invoice, hsnDescriptions }) {
               <View style={styles.detailBody}>
                 <Text style={styles.detailName}>{buyer.name}</Text>
                 <Text style={styles.detailLine}>{buyer.address}, {buyer.city}, {buyer.state} - {buyer.pincode}</Text>
-                {buyer.gstin && <Text style={styles.detailLine}>GSTIN: {buyer.gstin}</Text>}
+                <Text style={styles.detailLine}>GSTIN: {buyer.gstin || 'N/A'}</Text>
                 <Text style={styles.detailLine}>State Code: {invoice.place_of_supply}</Text>
                 <Text style={styles.detailLine}>Address Type: {invoice.address_type}</Text>
               </View>
