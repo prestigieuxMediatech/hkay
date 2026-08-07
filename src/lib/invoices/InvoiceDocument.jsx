@@ -1,16 +1,23 @@
-// lib/invoices/InvoiceDocument.jsx
-import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
+import fs from 'fs'
+import { Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer'
+import path from 'path'
 import { numberToWords } from './numberToWords'
 import { TERMS_AND_CONDITIONS } from './sellerConfig'
+
+const LOGO_PATH = path.join(process.cwd(), 'public', 'logo_black.png')
+const LOGO_DATA_URI = `data:image/png;base64,${fs.readFileSync(LOGO_PATH).toString('base64')}`
 
 const styles = StyleSheet.create({
   page: { padding: 30, fontSize: 9, fontFamily: 'Helvetica', color: '#1a1a1a' },
   border: { border: '1pt solid #333', padding: 15 },
 
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  brandName: { fontSize: 18, fontWeight: 'bold' },
+  brandRow: { flexDirection: 'row', alignItems: 'center' },
+  logo: { width: 40, height: 40, marginRight: 8, objectFit: 'contain' },
+  brandTextCol: { flexDirection: 'column', justifyContent: 'center' },
+  brandName: { fontSize: 16, fontWeight: 'bold', lineHeight: 1.15 },
   brandSub: { fontSize: 8, color: '#555', marginTop: 2 },
-  brandAddress: { fontSize: 8, color: '#555', marginTop: 4, lineHeight: 1.4 },
+  brandAddress: { fontSize: 8, color: '#555', marginTop: 6, lineHeight: 1.4 },
   invoiceTitle: { fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
   invoiceSubtitle: { fontSize: 8, textAlign: 'center', color: '#555', marginTop: 2 },
 
@@ -115,8 +122,13 @@ export default function InvoiceDocument({ invoice, hsnDescriptions }) {
           {/* Header */}
           <View style={styles.headerRow}>
             <View style={{ width: '35%' }}>
-              <Text style={styles.brandName}>{seller.name}</Text>
-              <Text style={styles.brandSub}>Handmade Leather Goods</Text>
+              <View style={styles.brandRow}>
+                <Image src={LOGO_DATA_URI} style={styles.logo} alt="HKAY Leather Goods logo" />
+                <View style={styles.brandTextCol}>
+                  <Text style={styles.brandName}>{seller.name}</Text>
+                  <Text style={styles.brandSub}>Handmade Leather Goods</Text>
+                </View>
+              </View>
               <Text style={styles.brandAddress}>{seller.address}</Text>
             </View>
             <View style={{ width: '30%' }}>
@@ -212,7 +224,14 @@ export default function InvoiceDocument({ invoice, hsnDescriptions }) {
             {items.map((item, idx) => (
               <View style={styles.tableRow} key={idx}>
                 <Text style={[styles.td, styles.colSr]}>{idx + 1}</Text>
-                <Text style={[styles.td, styles.colName]}>{item.name}</Text>
+                <View style={[styles.td, styles.colName, { textAlign: 'left' }]}>
+                  <Text>{item.name}</Text>
+                  {item.custom_text && (
+                    <Text style={{ fontSize: 6.5, color: '#555', marginTop: 1 }}>
+                      Personalization: {item.custom_text}
+                    </Text>
+                  )}
+                </View>
                 <Text style={[styles.td, styles.colHsn]}>{item.hsn_code}</Text>
                 <Text style={[styles.td, styles.colQty]}>{item.quantity}</Text>
                 <Text style={[styles.td, styles.colRate]}>{money(item.rate)}</Text>

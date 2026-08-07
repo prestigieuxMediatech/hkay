@@ -23,6 +23,7 @@ export async function buildInvoiceLineItems(items, buyerState) {
       igst: tax.igst,
       totalTax: tax.totalTax,
       total: lineTotal,
+      custom_text: item.custom_text || null,
     }
   })
 

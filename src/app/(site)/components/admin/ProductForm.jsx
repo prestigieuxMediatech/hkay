@@ -30,6 +30,9 @@ const emptyForm = {
   isNewArrival: false,
   isBestSeller: false,
   status: "draft",
+  namePrintingEnabled: false,
+  namePrintingCharLimit: "20",
+  namePrintingLabel: "Add a name for personalization",
 };
 
 function buildFormState(product) {
@@ -48,6 +51,10 @@ function buildFormState(product) {
     isNewArrival: Boolean(product.is_new_arrival),
     isBestSeller: Boolean(product.is_best_seller),
     status: product.status || "draft",
+    namePrintingEnabled: Boolean(product.name_printing_enabled),
+    namePrintingCharLimit: product.name_printing_char_limit?.toString() || "20",
+    namePrintingLabel:
+      product.name_printing_label || "Add a name for personalization",
   };
 }
 
@@ -219,6 +226,9 @@ export default function ProductForm({
         isNewArrival: form.isNewArrival,
         isBestSeller: form.isBestSeller,
         status: form.status,
+        namePrintingEnabled: form.namePrintingEnabled,
+        namePrintingCharLimit: parseInt(form.namePrintingCharLimit, 10) || 20,
+        namePrintingLabel: form.namePrintingLabel.trim(),
       };
 
       if (uploadedImageUrls.length) {
@@ -544,6 +554,56 @@ export default function ProductForm({
                   </span>
                 </label>
               </div>
+            </div>
+
+            <div>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
+                Name Printing
+              </h2>
+
+              <label className="flex items-center gap-3 rounded-xl border border-stone-200 p-4">
+                <input
+                  type="checkbox"
+                  checked={form.namePrintingEnabled}
+                  onChange={(event) =>
+                    updateField("namePrintingEnabled", event.target.checked)
+                  }
+                  className="h-4 w-4 rounded border-stone-300"
+                />
+                <span className="text-sm font-medium text-stone-700">
+                  Enable name printing / personalization
+                </span>
+              </label>
+
+              {form.namePrintingEnabled ? (
+                <div className="mt-3 grid gap-4 rounded-xl border border-stone-200 p-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-stone-700">
+                      Character Limit
+                    </label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={form.namePrintingCharLimit}
+                      onChange={(event) =>
+                        updateField("namePrintingCharLimit", event.target.value)
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-stone-700">
+                      Input Label (shown to customer)
+                    </label>
+                    <Input
+                      value={form.namePrintingLabel}
+                      onChange={(event) =>
+                        updateField("namePrintingLabel", event.target.value)
+                      }
+                    />
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             {product?.id ? (

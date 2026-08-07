@@ -27,6 +27,12 @@ function normalizeNullableNumber(value) {
   return Number.isNaN(numberValue) ? Number.NaN : numberValue;
 }
 
+function normalizeCharLimit(value) {
+  const text = normalizeText(value);
+  const numberValue = parseInt(text, 10);
+  return Number.isNaN(numberValue) || numberValue < 1 ? 20 : numberValue;
+}
+
 function normalizeImageUrls(value) {
   if (!Array.isArray(value)) {
     return [];
@@ -57,6 +63,9 @@ async function readProductBody(request) {
       isNewArrival: formData.get("isNewArrival"),
       isBestSeller: formData.get("isBestSeller"),
       status: formData.get("status"),
+      namePrintingEnabled: formData.get("namePrintingEnabled"),
+      namePrintingCharLimit: formData.get("namePrintingCharLimit"),
+      namePrintingLabel: formData.get("namePrintingLabel"),
       images: formData.getAll("images"),
     };
   }
@@ -71,7 +80,7 @@ export async function GET(request) {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, name, slug, description, price, original_price, category_id, images, is_featured, is_new_arrival, is_best_seller, status, created_at, category:categories(id, name, slug)"
+      "id, name, slug, description, price, original_price, category_id, images, is_featured, is_new_arrival, is_best_seller, status, name_printing_enabled, name_printing_char_limit, name_printing_label, created_at, category:categories(id, name, slug)"
     )
     .order("created_at", { ascending: false });
 
@@ -102,6 +111,11 @@ export async function POST(request) {
     const isNewArrival = toBoolean(body.isNewArrival);
     const isBestSeller = toBoolean(body.isBestSeller);
     const status = normalizeStatus(normalizeText(body.status).toLowerCase());
+    const namePrintingEnabled = toBoolean(body.namePrintingEnabled);
+    const namePrintingCharLimit = normalizeCharLimit(body.namePrintingCharLimit);
+    const namePrintingLabel =
+      normalizeNullableText(body.namePrintingLabel) ||
+      "Add a name for personalization";
 
     if (!name || !slug || !priceRaw || Number.isNaN(price)) {
       return NextResponse.json(
@@ -131,9 +145,12 @@ export async function POST(request) {
         is_new_arrival: isNewArrival,
         is_best_seller: isBestSeller,
         status,
+        name_printing_enabled: namePrintingEnabled,
+        name_printing_char_limit: namePrintingCharLimit,
+        name_printing_label: namePrintingLabel,
       })
       .select(
-        "id, name, slug, description, price, original_price, category_id, images, is_featured, is_new_arrival, is_best_seller, status, created_at, category:categories(id, name, slug)"
+        "id, name, slug, description, price, original_price, category_id, images, is_featured, is_new_arrival, is_best_seller, status, name_printing_enabled, name_printing_char_limit, name_printing_label, created_at, category:categories(id, name, slug)"
       )
       .single();
 

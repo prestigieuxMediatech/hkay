@@ -23,6 +23,9 @@ export default function ProductPage({ params }) {
   const [optionGroups, setOptionGroups] = useState([]) // [{ group_name, values: [{id,value,price}] }]
   const [selectedOptions, setSelectedOptions] = useState({}) // { "Foil Color": {id, value, price} }
 
+  // Name printing / personalization (optional, per-product)
+  const [customText, setCustomText] = useState("")
+
   const touchStartX = useRef(null)
   const touchDeltaX = useRef(0)
 
@@ -30,7 +33,7 @@ export default function ProductPage({ params }) {
     async function fetchProduct() {
       const { data, error } = await supabase
         .from("products")
-        .select("id,name,slug,description,price,original_price,images,is_best_seller,is_new_arrival,has_variants")
+        .select("id,name,slug,description,price,original_price,images,is_best_seller,is_new_arrival,has_variants,name_printing_enabled,name_printing_char_limit,name_printing_label")
         .eq("slug", slug)
         .single()
 
@@ -38,6 +41,7 @@ export default function ProductPage({ params }) {
 
       setProduct(data)
       setCurrentIndex(0)
+      setCustomText("")
 
       if (data.has_variants) {
         const { data: variantData, error: variantErr } = await supabase
@@ -93,6 +97,7 @@ export default function ProductPage({ params }) {
   )
   const displayPrice = (selectedVariant?.price ?? product?.price ?? 0) + optionsAdjustment
   const requiresVariant = product?.has_variants && variants.length > 0
+  const charLimit = product?.name_printing_char_limit || 20
 
   const images = product?.images || []
   const mainImage = images[currentIndex] || null
@@ -138,6 +143,13 @@ export default function ProductPage({ params }) {
 
   function selectOption(groupName, opt) {
     setSelectedOptions((prev) => ({ ...prev, [groupName]: opt }))
+  }
+
+  function handleCustomTextChange(e) {
+    const value = e.target.value
+    if (value.length <= charLimit) {
+      setCustomText(value)
+    }
   }
 
   if (!product) return (
@@ -241,7 +253,7 @@ export default function ProductPage({ params }) {
             {/* Scrollable content */}
             <div
               className="flex flex-col gap-6 lg:py-2 lg:overflow-y-auto lg:pr-2 lg:min-h-0
-                [scrollbar-width:thin] [scrollbar-color:theme(colors.stone.300)_transparent]
+                [scrollbar-thin] [scrollbar-color:theme(colors.stone.300)_transparent]
                 [&::-webkit-scrollbar]:w-1.5
                 [&::-webkit-scrollbar-thumb]:bg-stone-300
                 [&::-webkit-scrollbar-thumb]:rounded-full
@@ -382,6 +394,32 @@ export default function ProductPage({ params }) {
                 </>
               )}
 
+              {/* Name Printing / Personalization (optional, per-product) */}
+              {product.name_printing_enabled && (
+                <>
+                  <div>
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                        {product.name_printing_label || "Add a name for personalization"}
+                        <span className="ml-1 normal-case font-normal text-stone-400">(optional)</span>
+                      </p>
+                      <span className="text-xs text-stone-400">
+                        {customText.length}/{charLimit}
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      value={customText}
+                      onChange={handleCustomTextChange}
+                      maxLength={charLimit}
+                      placeholder="e.g. Raj"
+                      className="w-full rounded-lg border border-stone-200 px-4 py-2.5 text-sm outline-none transition focus:border-stone-400"
+                    />
+                  </div>
+                  <hr className="border-stone-200" />
+                </>
+              )}
+
               {/* Description */}
               {product.description && (
                 <div>
@@ -402,6 +440,7 @@ export default function ProductPage({ params }) {
                 product={product}
                 variant={selectedVariant}
                 selectedOptions={selectedOptions}
+                customText={customText}
                 onClick={handleAddToCartClick}
                 className="w-full py-3.5 text-base rounded-xl bg-black text-white hover:bg-gray-800 cursor-pointer"
               />
@@ -426,6 +465,7 @@ export default function ProductPage({ params }) {
           product={product}
           variant={selectedVariant}
           selectedOptions={selectedOptions}
+          customText={customText}
           onClick={handleAddToCartClick}
           className="flex-1 py-5 text-sm rounded-xl bg-black text-white hover:bg-gray-800 cursor-pointer"
         />

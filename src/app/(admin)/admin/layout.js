@@ -157,7 +157,7 @@ export default function AdminLayout({ children }) {
             </div>
 
             {menuOpen && (
-              <div className="border-t border-stone-200 bg-white px-4 py-3">
+              <div className="border-t border-white/10 bg-[#1c0d02] px-4 py-3">
                 <div className="flex flex-col gap-1">
                   {navLinks.map((link) => (
                     <NavLink

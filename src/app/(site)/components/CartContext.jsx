@@ -5,10 +5,10 @@ import { useUser } from '@clerk/nextjs'
 
 const CartContext = createContext()
 
-// Build a stable composite key for a cart line: same product + same variant + same options = same line
-function lineKey(productId, variantId, selectedOptions = {}) {
+// Build a stable composite key for a cart line: same product + same variant + same options + same personalization text = same line
+function lineKey(productId, variantId, selectedOptions = {}, customText = '') {
   const optionsKey = JSON.stringify(selectedOptions || {})
-  return `${productId}::${variantId || 'novariant'}::${optionsKey}`
+  return `${productId}::${variantId || 'novariant'}::${optionsKey}::${customText || ''}`
 }
 
 export function CartProvider({ children }) {
@@ -57,10 +57,12 @@ export function CartProvider({ children }) {
 
   // ADD TO CART
   // selectedOptions shape coming in from the product page: { "Foil Color": { id, value, price }, ... }
-  async function addToCart(product, variant = null, quantity = 1, selectedOptions = {}) {
+  // customText: optional personalization/name-printing text entered by the customer
+  async function addToCart(product, variant = null, quantity = 1, selectedOptions = {}, customText = '') {
     const variantId = variant?.id || null
     const variantLabel = variant?.variant_label || null
     const variantPrice = variant?.price ?? null
+    const trimmedCustomText = (customText || '').trim() || null
 
     // Flatten to a simple, storable shape: { "Foil Color": "Gold" }
     const selectedOptionsFlat = Object.fromEntries(
@@ -82,7 +84,8 @@ export function CartProvider({ children }) {
             variantId,
             quantity,
             selectedOptions: selectedOptionsFlat,
-            optionsPriceAdjustment
+            optionsPriceAdjustment,
+            customText: trimmedCustomText
           })
         })
         await fetchCart(user.id)
@@ -92,8 +95,8 @@ export function CartProvider({ children }) {
     } else {
       const local = getLocalCart()
       const existing = local.find(
-        i => lineKey(i.product_id, i.variant_id, i.selected_options) ===
-             lineKey(product.id, variantId, selectedOptionsFlat)
+        i => lineKey(i.product_id, i.variant_id, i.selected_options, i.custom_text) ===
+             lineKey(product.id, variantId, selectedOptionsFlat, trimmedCustomText)
       )
 
       if (existing) {
@@ -106,6 +109,7 @@ export function CartProvider({ children }) {
           variant_price: variantPrice,
           selected_options: selectedOptionsFlat,
           options_price_adjustment: optionsPriceAdjustment,
+          custom_text: trimmedCustomText,
           quantity,
           products: product
         })
@@ -124,8 +128,8 @@ export function CartProvider({ children }) {
       await fetchCart(user.id)
     } else {
       const local = getLocalCart().filter(
-        i => lineKey(i.product_id, i.variant_id, i.selected_options) !==
-             lineKey(item.product_id, item.variant_id, item.selected_options)
+        i => lineKey(i.product_id, i.variant_id, i.selected_options, i.custom_text) !==
+             lineKey(item.product_id, item.variant_id, item.selected_options, item.custom_text)
       )
       saveLocalCart(local)
       setCartItems(local)
@@ -144,8 +148,8 @@ export function CartProvider({ children }) {
       await fetchCart(user.id)
     } else {
       const local = getLocalCart().map(i =>
-        lineKey(i.product_id, i.variant_id, i.selected_options) ===
-        lineKey(item.product_id, item.variant_id, item.selected_options)
+        lineKey(i.product_id, i.variant_id, i.selected_options, i.custom_text) ===
+        lineKey(item.product_id, item.variant_id, item.selected_options, item.custom_text)
           ? { ...i, quantity }
           : i
       )

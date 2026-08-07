@@ -14,6 +14,10 @@ function getSelectedOptions(item) {
   return item.selected_options || {}
 }
 
+function getCustomText(item) {
+  return item.custom_text || null
+}
+
 function getItemPrice(item) {
   const variantPrice = item.product_variants?.price ?? item.variant_price
   const base = variantPrice ?? item.products?.price ?? 0
@@ -86,11 +90,12 @@ export default function CartPage() {
           {cartItems.map((item) => {
             const variantLabel = getVariantLabel(item)
             const selectedOptions = getSelectedOptions(item)
+            const customText = getCustomText(item)
             const itemPrice = getItemPrice(item)
 
             return (
               <div
-                key={item.id || `${item.product_id}-${item.variant_id || 'novariant'}-${JSON.stringify(selectedOptions)}`}
+                key={item.id || `${item.product_id}-${item.variant_id || 'novariant'}-${JSON.stringify(selectedOptions)}-${customText || 'notext'}`}
                 className="bg-white border border-stone-200
                   rounded-2xl p-4 sm:p-5"
               >
@@ -129,6 +134,11 @@ export default function CartPage() {
                             {group}: {value}
                           </p>
                         ))}
+                        {customText && (
+                          <p className="text-xs text-stone-400 mt-0.5">
+                            Personalization: {customText}
+                          </p>
+                        )}
                         <p className="text-sm text-stone-500 mt-1">
                           ₹{itemPrice.toLocaleString('en-IN')}
                         </p>

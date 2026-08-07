@@ -1,7 +1,7 @@
 export const SELLER_DETAILS = {
   name: 'HKAY LEATHER GOODS',
   gstin: '27AKWPI1394K1ZG',
-  address: 'Shop No. 1, Ground Floor, Near Green Park, Lane No. 5, Kurla (West), Mumbai – 400070, Maharashtra, India',
+  address: 'Shop No. 4, 92/102 M.S. Ali Road, Mumbai – 400008, Maharashtra, India',
   state: 'Maharashtra',
   stateCode: '27',
   mobile: '8850149101',
@@ -9,8 +9,8 @@ export const SELLER_DETAILS = {
 }
 
 export const TERMS_AND_CONDITIONS = [
-  'Goods once sold will not be taken back.',
-  'Warranty (if any) as per product policy.',
-  'Payment once made will not be refunded.',
+  'Goods can be returned only in case of a genuine manufacturing defect or quality issue.',
+  'Refunds are available only when there is a valid reason and the returned product is approved after inspection.',
+  'If eligible, the refund will be processed after the returned product is received and verified.',
   'Subject to Mumbai Jurisdiction.',
 ]

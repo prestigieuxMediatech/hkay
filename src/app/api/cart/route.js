@@ -22,6 +22,7 @@ export async function GET(request){
                 variant_id,
                 selected_options,
                 options_price_adjustment,
+                custom_text,
                 products(
                     id,
                     name,
@@ -59,7 +60,8 @@ export async function POST(request){
             variantId = null,
             quantity = 1,
             selectedOptions = {},
-            optionsPriceAdjustment = 0
+            optionsPriceAdjustment = 0,
+            customText = null
         } = await request.json();
 
         if(!userId || !productId){
@@ -70,16 +72,17 @@ export async function POST(request){
         }
 
         const normalizedOptions = selectedOptions || {}
+        const normalizedCustomText = (customText && customText.trim()) || null
 
         // Manual upsert instead of .upsert()/onConflict — Postgres treats NULL
         // as distinct from NULL in unique constraints, so onConflict would never
         // match existing rows for products without a variant (variant_id = null).
         // selected_options (jsonb) has the same issue plus we need an exact-match
         // comparison (not just "any options"), so we fetch candidates by
-        // user+product+variant and compare options in JS.
+        // user+product+variant and compare options (and custom_text) in JS.
         let existingQuery = supabase
             .from('cart_items')
-            .select('id, quantity, selected_options')
+            .select('id, quantity, selected_options, custom_text')
             .eq('user_id', userId)
             .eq('product_id', productId)
 
@@ -92,7 +95,9 @@ export async function POST(request){
         if (findError) throw findError
 
         const existing = (candidates || []).find(
-            (row) => JSON.stringify(row.selected_options || {}) === JSON.stringify(normalizedOptions)
+            (row) =>
+                JSON.stringify(row.selected_options || {}) === JSON.stringify(normalizedOptions) &&
+                (row.custom_text || null) === normalizedCustomText
         )
 
         let data, error
@@ -112,7 +117,8 @@ export async function POST(request){
                     variant_id: variantId,
                     quantity,
                     selected_options: normalizedOptions,
-                    options_price_adjustment: optionsPriceAdjustment
+                    options_price_adjustment: optionsPriceAdjustment,
+                    custom_text: normalizedCustomText
                 })
                 .select())
         }

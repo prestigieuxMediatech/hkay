@@ -150,6 +150,11 @@ export default function OrderConfirmationPage({ params }) {
                           {group}: {value}
                         </p>
                       ))}
+                      {item.custom_text && (
+                        <p className="text-xs text-stone-500 mt-0.5">
+                          Personalization: {item.custom_text}
+                        </p>
+                      )}
                       <p className="text-xs text-stone-500 mt-0.5">
                         Qty: {item.quantity}
                       </p>

@@ -260,7 +260,12 @@ export default function OrderDetailPage({ params }) {
                         {group}: {value}
                       </p>
                     ))}
-                    <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                    {item.custom_text && (
+                      <p className="text-xs font-semibold text-amber-700 bg-amber-50 inline-block px-2 py-0.5 rounded mt-1">
+                        ✎ Print name: {item.custom_text}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">Qty: {item.quantity}</p>
                   </div>
                   <p className="text-sm font-semibold">
                     ₹{(item.price * item.quantity).toLocaleString('en-IN')}

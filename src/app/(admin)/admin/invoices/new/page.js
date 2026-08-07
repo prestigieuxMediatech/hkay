@@ -144,7 +144,7 @@ export default function NewManualInvoicePage() {
             <select
               className={inputClass}
               value={paymentMethod}
-              onCh   ange={(e) => setPaymentMethod(e.target.value)}
+              onChange={(e) => setPaymentMethod(e.target.value)}
             >
               <option value="Cash">Cash</option>
               <option value="UPI">UPI</option>

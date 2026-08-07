@@ -64,6 +64,7 @@ export default function CheckoutPage() {
         const variantLabel = item.product_variants?.variant_label || item.variant_label || null
         const selectedOptions = item.selected_options || {}
         const optionsPriceAdjustment = item.options_price_adjustment || 0
+        const customText = item.custom_text || null
         const baseName = item.products?.name
 
         // Build a readable suffix from size + selected options, e.g. "— 20mm, Foil Color: Gold"
@@ -77,6 +78,7 @@ export default function CheckoutPage() {
           variant_label: variantLabel,
           selected_options: selectedOptions,
           options_price_adjustment: optionsPriceAdjustment,
+          custom_text: customText,
           name,
           price: getUnitPrice(item),
           quantity: item.quantity,
@@ -401,6 +403,7 @@ export default function CheckoutPage() {
                   {cartItems.map(item => {
                     const variantLabel = item.product_variants?.variant_label || item.variant_label || null
                     const selectedOptions = item.selected_options || {}
+                    const customText = item.custom_text || null
                     const unitPrice = getUnitPrice(item)
 
                     return (
@@ -430,6 +433,11 @@ export default function CheckoutPage() {
                               {group}: {value}
                             </p>
                           ))}
+                          {customText && (
+                            <p className="text-xs text-stone-500 mt-0.5">
+                              Personalization: {customText}
+                            </p>
+                          )}
                           <p className="text-xs text-stone-500 mt-0.5">
                             Qty: {item.quantity}
                           </p>
