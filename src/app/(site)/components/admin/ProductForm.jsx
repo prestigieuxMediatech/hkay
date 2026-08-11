@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ImagePlus, Plus, X } from "lucide-react";
 
-
 import { Button } from "@/components/ui/button";
 import ProductVariantsManager from "@/app/(site)/components/admin/ProductVariantsManager";
 import ProductVariantOptionsManager from "./ProductVariantOptionsManager";
@@ -101,8 +100,17 @@ export default function ProductForm({
   const [imageError, setImageError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const currentImages = Array.isArray(product?.images) ? product.images : [];
+  // Tracks the product this form is currently pointed at. Starts as the
+  // `product` prop (Edit page), but on the Add page it starts null and gets
+  // filled in the moment the first save succeeds — that's what lets the
+  // variant managers appear without leaving the page.
+  const [savedProduct, setSavedProduct] = useState(product);
+
+  const currentImages = Array.isArray(savedProduct?.images)
+    ? savedProduct.images
+    : [];
 
   useEffect(() => {
     async function loadCategories() {
@@ -190,8 +198,20 @@ export default function ProductForm({
     event.preventDefault();
     setLoading(true);
     setError("");
+    setSuccessMessage("");
 
     const uploadedImageUrls = [];
+
+    // If we already have a saved product (either we were passed one via
+    // props on the Edit page, or we created one moments ago on the Add
+    // page), every subsequent save is a PATCH to that product and finishes
+    // by leaving the page. The very first save on the Add page is a POST
+    // that creates the product and stays on the page.
+    const isUpdating = Boolean(savedProduct?.id);
+    const effectiveActionUrl = isUpdating
+      ? `/api/admin/products/${savedProduct.id}`
+      : actionUrl;
+    const effectiveMethod = isUpdating ? "PATCH" : method;
 
     try {
       for (let index = 0; index < imageFiles.length; index += 1) {
@@ -235,8 +255,8 @@ export default function ProductForm({
         payload.images = uploadedImageUrls;
       }
 
-      const response = await fetch(actionUrl, {
-        method,
+      const response = await fetch(effectiveActionUrl, {
+        method: effectiveMethod,
         headers: {
           "Content-Type": "application/json",
         },
@@ -249,8 +269,19 @@ export default function ProductForm({
         throw new Error(data.error || "Failed to save product");
       }
 
-      router.push(backHref);
-      router.refresh();
+      setSavedProduct(data.product);
+      clearImages();
+
+      if (isUpdating) {
+        router.push(backHref);
+        router.refresh();
+      } else {
+        // Just created the product for the first time — stay put so the
+        // admin can add size/variant options against the new product id.
+        setSuccessMessage(
+          'Product created. You can now add size and other variants below. Click "Update Product" when you\'re done to return to the products list.'
+        );
+      }
     } catch (err) {
       await cleanupUploadedProductImages(uploadedImageUrls);
       setError(err.message || "Something went wrong");
@@ -258,6 +289,8 @@ export default function ProductForm({
       setLoading(false);
     }
   }
+
+  const submitButtonLabel = savedProduct?.id ? "Update Product" : submitLabel;
 
   return (
     <div>
@@ -276,6 +309,12 @@ export default function ProductForm({
           {error ? (
             <div className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
               {error}
+            </div>
+          ) : null}
+
+          {successMessage ? (
+            <div className="mb-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              {successMessage}
             </div>
           ) : null}
 
@@ -606,17 +645,25 @@ export default function ProductForm({
               ) : null}
             </div>
 
-            {product?.id ? (
+            {savedProduct?.id ? (
               <div>
-                <ProductVariantsManager productId={product.id} />
+                <ProductVariantsManager productId={savedProduct.id} />
               </div>
-            ) : null}
+            ) : (
+              <div className="rounded-xl border border-dashed border-stone-200 p-4 text-sm text-stone-500">
+                Save the product once to unlock size variants.
+              </div>
+            )}
 
-            {product?.id ? (
+            {savedProduct?.id ? (
               <div>
-                <ProductVariantOptionsManager productId={product.id} />
+                <ProductVariantOptionsManager productId={savedProduct.id} />
               </div>
-            ) : null}
+            ) : (
+              <div className="rounded-xl border border-dashed border-stone-200 p-4 text-sm text-stone-500">
+                Save the product once to unlock other variants (foil color, buckle type, etc).
+              </div>
+            )}
 
             <div>
               <label className="mb-1 block text-sm font-medium text-stone-700">
@@ -641,7 +688,7 @@ export default function ProductForm({
               disabled={loading}
             >
               <Plus className="mr-2 size-4" />
-              {loading ? "Saving..." : submitLabel}
+              {loading ? "Saving..." : submitButtonLabel}
             </Button>
           </form>
         </CardContent>
