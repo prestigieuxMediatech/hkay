@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import RelatedProducts from "../../components/shop/RelatedProducts"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase-client"
 import { notFound } from "next/navigation"
@@ -33,7 +34,7 @@ export default function ProductPage({ params }) {
     async function fetchProduct() {
       const { data, error } = await supabase
         .from("products")
-        .select("id,name,slug,description,price,original_price,images,is_best_seller,is_new_arrival,has_variants,name_printing_enabled,name_printing_char_limit,name_printing_label")
+        .select("id,name,slug,description,price,original_price,category_id,images,is_best_seller,is_new_arrival,has_variants,name_printing_enabled,name_printing_char_limit,name_printing_label")
         .eq("slug", slug)
         .single()
 
@@ -449,7 +450,10 @@ export default function ProductPage({ params }) {
           </div>
         </div>
       </section>
-
+      <RelatedProducts
+        categoryId={product.category_id}
+        excludeProductId={product.id}
+      />
       {/* Sticky mobile add-to-cart bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-stone-200 bg-white/95
         backdrop-blur px-4 py-3 flex items-center gap-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
