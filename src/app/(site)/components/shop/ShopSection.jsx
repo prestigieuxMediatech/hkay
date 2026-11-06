@@ -136,7 +136,7 @@ function ShopSection() {
                   </div>
 
                   {/* Add to cart button — outside Link */}
-                  <div className="mt-3 sm:mt-5">
+                  <div className="mt-3 sm:mt-5 ">
                     <AddToCartButton product={item} />
                   </div>
                 </div>

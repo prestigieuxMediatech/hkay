@@ -4,13 +4,20 @@ import Footer from "./components/Footer";
 import { CartProvider } from "./components/CartContext";
 import "aos/dist/aos.css";
 import { ClerkProvider } from '@clerk/nextjs'
-
+import { ArrowUpRight, CalendarDays, Sparkles } from "lucide-react";
 export default function SiteLayout({ children }) {
+
+
   return (
     <ClerkProvider>
       <CartProvider>
         <AOSProvider>
-          <Header />
+       
+    
+      <Header />
+     
+          
+         
             {children}
           <Footer />
         </AOSProvider>
