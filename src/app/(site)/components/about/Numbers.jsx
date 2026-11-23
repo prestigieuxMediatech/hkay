@@ -16,7 +16,7 @@ function Numbers() {
     },
     {
       number: "100%",
-      label: "Genuine Leather",
+      label: "Full Grain Leather",
     },
   ];
 
