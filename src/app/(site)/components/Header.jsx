@@ -85,7 +85,7 @@ const iconBtnClass = `cursor-pointer transition-colors duration-300 ${
         <>
   
        <header
-  className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+  className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 h-16 sm:h-36 ${
     isLight
       ? "bg-white shadow-md py-3 md:py-4"
       : "bg-black/25 backdrop-blur-[3px] py-4 md:py-7"
