@@ -48,15 +48,17 @@ export default function Header() {
 
     const isLight = scrolled || menuOpen
 
-    const iconBtnClass = `cursor-pointer transition-colors duration-300 ${
-        isLight
-            ? "text-black hover:text-gray-500 hover:bg-gray-100"
-            : "text-black hover:text-gray-300 hover:bg-white/10"
-    }`
+const iconBtnClass = `cursor-pointer transition-colors duration-300 ${
+  isLight
+    ? "text-[#171717] hover:text-gray-500 hover:bg-gray-100"
+    : "text-white hover:text-white/70 hover:bg-white/10"
+}`
 
-    const navLinkClass = `text-base xl:text-lg cursor-pointer transition-colors duration-300 ${
-        isLight ? "text-black hover:text-gray-500" : " hover:text-gray-300"
-    }`
+   const navLinkClass = `text-base xl:text-lg cursor-pointer transition-colors duration-300 ${
+  isLight
+    ? "text-[#171717] hover:text-[#37A3E4]"
+    : "text-white hover:text-white/70"
+}`
 
     const isActiveRoute = (href) => {
         if (href === "/") {
@@ -82,16 +84,18 @@ export default function Header() {
 
         <>
   
-        <header
-            className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-                isLight ? "bg-white shadow-md py-3 md:py-4" : "bg-transparent py-4 md:py-7"
-            }`}
-        >
+       <header
+  className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+    isLight
+      ? "bg-white shadow-md py-3 md:py-4"
+      : "bg-black/25 backdrop-blur-[3px] py-4 md:py-7"
+  }`}
+>
             <div className="flex items-center justify-between px-4 sm:px-6 lg:px-10">
                 <Link href="/">
                 {/* /logo_white.png */}
                     <Image
-                        src={isLight ? "/logo_black.png" : "/logo_black.png"}
+                        src={isLight ? "/logo_black.png" : "/logo_white.png"}
                         alt="Logo"
                         width={90}
                         height={70}
@@ -214,7 +218,7 @@ export default function Header() {
                                         aria-current={isActiveRoute(item.href) ? "page" : undefined}
                                         className={`flex items-center justify-between rounded-lg px-3 py-4 text-base font-medium transition-colors hover:bg-gray-50 hover:text-gray-600 ${
                                             isActiveRoute(item.href)
-                                                ? "bg-gray-50 text-[#3b1f0f]"
+                                                ? "bg-gray-50 text-white"
                                                 : "text-gray-900"
                                         }`}
                                         >
@@ -234,7 +238,7 @@ export default function Header() {
                                     <SheetClose asChild>
                                         <Link
                                             href="/orders"
-                                            className="flex items-center justify-between rounded-lg px-3 py-4 text-base font-medium text-gray-900 transition-colors hover:bg-gray-50 hover:text-gray-600"
+                                            className="flex items-center justify-between rounded-lg px-3 py-4 text-base font-medium text-white-900 transition-colors hover:bg-gray-50 hover:text-gray-600"
                                         >
                                             My Orders
                                             <ChevronRight
@@ -262,69 +266,7 @@ export default function Header() {
         </header>
 
 
-            <div
-                className={`w-full ${
-                    scrolled
-                        ? "h-[64px] text-black md:h-[72px]"
-                        : "h-[64px] md:h-[100px] text-black"
-                }`}
-            />
-         <div className="w-full pt-10 overflow-hidden bg-[#071B2C] py-4">
-  <style>
-    {`
-      @keyframes marquee {
-        from {
-          transform: translateX(-50%);
-        }
-        to {
-          transform: translateX(0);
-        }
-      }
-
-      .animate-marquee {
-        animation: marquee 35s linear infinite;
-        will-change: transform;
-      }
-
-      .animate-marquee:hover {
-        animation-play-state: paused;
-      }
-    `}
-  </style>
-
-  <div className="flex w-max animate-marquee">
-    {[...Array(4)].map((_, index) => (
-      <div key={index} className="flex shrink-0 items-center">
-        {[
-          "IMPORTANT NOTICE FOR COUSTOMER",
-          "LEATHER CRAFTING & ORDER PROCESSING WILL RESUME FROM 1ST DECEMBER 2026",
-          "THANK YOU FOR YOUR PATIENCE",
-        ].map((message, i) => (
-          <div
-            key={i}
-            className="mx-8 flex items-center gap-5 whitespace-nowrap"
-          >
-            <Sparkles className="h-5 w-5 text-[#B9F56A]" />
-
-            <span className="text-sm font-bold tracking-[0.12em] text-white md:text-base">
-              {message}
-            </span>
-
-            {i === 1 && (
-              <span className="rounded-full bg-[#B9F56A] px-5 py-2 text-xs font-black tracking-wider text-[#071B2C]">
-                DEC 01, 2026
-              </span>
-            )}
-
-            <ArrowUpRight className="h-5 w-5 text-[#B9F56A]" />
-
-            <div className="mx-4 h-2 w-2 rounded-full bg-[#B9F56A]" />
-          </div>
-        ))}
-      </div>
-    ))}
-  </div>
-</div>
+           
         </>
     )
 }

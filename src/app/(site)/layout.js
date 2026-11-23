@@ -5,6 +5,7 @@ import { CartProvider } from "./components/CartContext";
 import "aos/dist/aos.css";
 import { ClerkProvider } from '@clerk/nextjs'
 import { ArrowUpRight, CalendarDays, Sparkles } from "lucide-react";
+import AnnouncementPopup from "./components/AnnouncementPopup";
 export default function SiteLayout({ children }) {
 
 
@@ -13,6 +14,7 @@ export default function SiteLayout({ children }) {
       <CartProvider>
         <AOSProvider>
        
+       <AnnouncementPopup/>
     
       <Header />
      
